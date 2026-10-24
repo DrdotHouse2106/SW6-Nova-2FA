@@ -1,3 +1,6 @@
+# 1.2.3
+- Customers selected in Nova Upload's download-area access list can set up two-factor login
+
 # 1.2.2
 - New: separate window for the code at administration login (opens after username and password; recovery codes accepted)
 - Fixed: "password followed by code" in the password field was rejected because Shopware re-reads JSON login data from the raw body

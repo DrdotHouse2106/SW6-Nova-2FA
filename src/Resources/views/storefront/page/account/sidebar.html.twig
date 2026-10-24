@@ -4,7 +4,7 @@
     {{ parent() }}
 
     {% block nova_2fa_sidebar_link %}
-        {% if config('NovaTwoFactor.config.customerEnabled') or context.customer.customFields.nova_upload_access|default(false) %}
+        {% if config('NovaTwoFactor.config.customerEnabled') or context.customer.customFields.nova_upload_access|default(false) or context.customer.id in config('NovaUpload.config.downloadCustomerIds')|default([]) %}
         <a href="{{ path('frontend.nova_2fa.page') }}"
            title="{{ 'novaTwoFactor.title'|trans|striptags }}"
            class="list-group-item list-group-item-action account-aside-item{% if activeRoute starts with 'frontend.nova_2fa' %} is-active{% endif %}">

@@ -65,6 +65,7 @@ class TwoFactorGuard
     {
         return $this->config->getBool('NovaTwoFactor.config.customerEnabled', $salesChannelId)
             || !empty($customFields['nova_upload_access'])
+            || \in_array($customerId, (array) ($this->config->get('NovaUpload.config.downloadCustomerIds', $salesChannelId) ?? []), true)
             || $this->isEnabled($customerId);
     }
 

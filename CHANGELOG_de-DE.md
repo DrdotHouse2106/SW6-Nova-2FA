@@ -1,3 +1,6 @@
+# 1.2.3
+- Kunden, die in Nova Upload (ab 1.2.0) unter „Kunden mit Zugriff auf den Download-Bereich“ ausgewählt sind, können die Zwei-Faktor-Anmeldung einrichten – auch ohne Zusatzfeld
+
 # 1.2.2
 - Neu: **Eigenes Fenster für den Code bei der Admin-Anmeldung** – nach Benutzername und Passwort öffnet sich ein Fenster für den 6-stelligen Code (oder einen Wiederherstellungscode). Bei falschem Code erscheint ein Hinweis
 - Fehler behoben: „Passwort und Code im Passwortfeld“ wurde abgelehnt, weil Shopware die Anmeldedaten bei JSON-Anfragen aus dem Rohtext neu einliest. Jetzt wird auch dort das reine Passwort übergeben (funktioniert weiter als Ausweichweg)
