@@ -23,7 +23,10 @@
             "title": "Ihre Wiederherstellungscodes",
             "text": "Jeder Code funktioniert einmal, falls Sie keinen Zugriff auf Ihre App haben. Notieren oder drucken Sie sie jetzt – sie werden nur dieses eine Mal angezeigt.",
             "remaining": "Noch %count% Wiederherstellungscodes verfügbar.",
-            "regenerate": "Neue Wiederherstellungscodes"
+            "regenerate": "Neue Wiederherstellungscodes",
+            "print": "Drucken / als PDF speichern",
+            "printTitle": "Wiederherstellungscodes – Zwei-Faktor-Anmeldung",
+            "printNote": "Jeder Code funktioniert genau einmal, falls die Authenticator-App nicht verfügbar ist. Sicher aufbewahren – nicht neben dem Handy."
         },
         "verify": {
             "title": "Bestätigung erforderlich",

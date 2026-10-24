@@ -3,11 +3,11 @@
   "entryPoints": {
     "nova-two-factor": {
       "css": [
-        "/bundles/novatwofactor/administration/assets/nova-two-factor-CZEXIJ1s.css"
+        "/bundles/novatwofactor/administration/assets/nova-two-factor-RpJmeLPr.css"
       ],
       "dynamic": [],
       "js": [
-        "/bundles/novatwofactor/administration/assets/nova-two-factor-DsvC5VnO.js"
+        "/bundles/novatwofactor/administration/assets/nova-two-factor-D_uNMDW6.js"
       ],
       "legacy": false,
       "preload": []

@@ -35,7 +35,22 @@
             "disabled": "Two-factor login turned off.",
             "recoveryTitle": "Your recovery codes",
             "recoveryText": "Each code works once if the app is not available. Write them down now – they are not shown again.",
-            "error": "Action failed."
+            "error": "Action failed.",
+            "print": "Print / save as PDF",
+            "printTitle": "Recovery codes – two-factor login",
+            "printNote": "Each code works exactly once if the authenticator app is not available. Keep them safe – not next to your phone.",
+            "printBlocked": "The print window was blocked. Please allow pop-ups for the administration."
+        },
+        "confirm": {
+            "title": "Confirm with 2FA",
+            "text": "Users, roles and API access can only be created or changed with the current code from your authenticator app.",
+            "invalid": "The code was invalid – please try again.",
+            "cancel": "Cancel",
+            "submit": "Confirm"
+        },
+        "enforce": {
+            "title": "Set up two-factor login",
+            "text": "Two-factor login is mandatory for this administration. Please set it up now – no changes are possible before."
         }
     }
 }

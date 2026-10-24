@@ -5,6 +5,9 @@
 Two-factor login with an authenticator app (TOTP, RFC 6238) for the **administration** (Shopware has none built in) and optionally for **customer accounts** in Shopware 6.6/6.7.
 
 - Administration: set up per user under *Profile*; a code field appears at login after a correct password. Settings → Users: status and reset. Emergency: `bin/console nova-2fa:reset-user <username>`.
+- Optional: make 2FA mandatory for the administration (users must set it up first; integrations cannot create users/roles/access keys).
+- Creating/changing users, roles, integrations and access keys always requires a fresh code (confirmation dialog, valid 5 minutes).
+- Recovery codes can be printed or saved as PDF.
 - Customers: enable per sales channel ("Offer two-factor login to customers", default off); accounts with Nova Upload download access always have it.
 
 - Setup in *My account → Two-factor login*: scan the QR code (generated in the browser), confirm a code, 8 one-time recovery codes.

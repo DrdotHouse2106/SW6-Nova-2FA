@@ -11,6 +11,9 @@ Für Kunden ist 2FA pro Verkaufskanal einschaltbar und dann freiwillig. Konten m
 | Funktion | Beschreibung |
 |---|---|
 | **Administration** | Jeder Benutzer richtet 2FA unter *Profil* ein (QR-Code, Wiederherstellungscodes). Bei der Anmeldung erscheint nach dem Passwort ein Code-Feld. Geprüft wird erst nach richtigem Passwort – ohne Passwort lässt sich weder erkennen, ob 2FA aktiv ist, noch das Konto sperren. *Einstellungen → Benutzer*: Status und Zurücksetzen für andere Benutzer |
+| **Pflicht für die Administration** | Schalter „Zwei-Faktor-Anmeldung für die Administration verpflichtend“: Benutzer ohne 2FA sehen nach der Anmeldung ein Einrichtungsfenster und können vorher nichts ändern (Lesen geht). Integrationen (API-Zugänge) dürfen dann keine Benutzer, Rollen oder Zugänge anlegen |
+| **Zugänge nur mit Code** | Benutzer, Rollen, Integrationen (API-Zugänge) und Zugangsschlüssel anlegen, ändern oder löschen verlangt immer den aktuellen App-Code – ein Bestätigungsfenster fragt ihn ab, danach 5 Minuten gültig. Schützt vor heimlich angelegten Hintertür-Zugängen, auch wenn jemand eine offene Sitzung erwischt |
+| **Codes drucken** | Wiederherstellungscodes lassen sich direkt drucken oder als PDF speichern (Druckdialog → „Als PDF speichern“) – im Profil und im Kundenkonto |
 | **Notfall** | `bin/console nova-2fa:reset-user <benutzername>` entfernt die 2FA eines Admin-Benutzers (z. B. einziger Admin, Handy und Codes verloren) |
 | **Einrichtung im Kundenkonto** | *Mein Konto → Zwei-Faktor-Anmeldung*: QR-Code scannen (wird im Browser erzeugt, kein externer Dienst), Code bestätigen – fertig. Schlüssel zusätzlich zum Abtippen |
 | **Wiederherstellungscodes** | 8 Einmal-Codes bei der Einrichtung (nur einmal angezeigt), neu erzeugbar |
@@ -38,7 +41,7 @@ bin/console cache:clear
 
 *Erweiterungen → Meine Erweiterungen → Nova 2FA → Konfigurieren* (pro Verkaufskanal): **Zwei-Faktor-Anmeldung für Kunden anbieten** (aus), Gültigkeit in Stunden (12), Fehlversuche bis zur Sperre (5), Sperre in Minuten (15), Name in der App (leer = Name des Verkaufskanals). Fehlversuche und Sperre gelten auch für die Administration (Einstellung „Alle Verkaufskanäle“).
 
-**Empfehlung:** Für alle Benutzer der Administration 2FA im Profil einrichten.
+**Empfehlung:** Zuerst die eigene 2FA im Profil einrichten und testen, dann unter „Alle Verkaufskanäle“ **„Zwei-Faktor-Anmeldung für die Administration verpflichtend“** einschalten. Alle anderen Benutzer werden bei der nächsten Anmeldung zur Einrichtung geführt.
 
 ## Grenzen
 
@@ -77,6 +80,24 @@ bin/console cache:clear
 **Ursache:** Für Kunden ist 2FA im Verkaufskanal nicht eingeschaltet
 
 **Lösung:** Nova 2FA → Konfigurieren → Verkaufskanal → „Zwei-Faktor-Anmeldung für Kunden anbieten“. Konten mit Zugriff auf den Nova-Upload-Download-Bereich sehen den Punkt immer
+
+### Beim Speichern eines Benutzers oder einer Integration erscheint „Mit 2FA bestätigen“
+
+**Ursache:** Gewollt – Zugänge zur Administration und API lassen sich nur mit dem aktuellen App-Code anlegen oder ändern
+
+**Lösung:** Code aus der App eingeben. Danach gilt die Bestätigung 5 Minuten, weitere Änderungen in dieser Zeit fragen nicht erneut
+
+### Eine Integration (z. B. ERP-Anbindung) kann keine Benutzer oder Zugänge mehr anlegen
+
+**Ursache:** Im Pflicht-Modus dürfen Integrationen keine Benutzer, Rollen oder Zugänge anlegen – sie können keinen zweiten Faktor nachweisen
+
+**Lösung:** Zugänge von Hand in der Administration anlegen. Normale Daten (Produkte, Bestellungen …) ändern Integrationen weiterhin
+
+### Druckfenster für die Wiederherstellungscodes öffnet sich nicht
+
+**Ursache:** Der Browser blockiert Pop-ups
+
+**Lösung:** Pop-ups für die Shop- bzw. Admin-Adresse erlauben oder die Codes abschreiben
 
 ### QR-Code erscheint nicht
 

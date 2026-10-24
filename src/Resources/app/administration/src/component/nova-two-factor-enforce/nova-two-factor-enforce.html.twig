@@ -1,0 +1,9 @@
+{% block nova_two_factor_enforce %}
+<div v-if="show" class="nova-two-factor-enforce">
+    <div class="nova-two-factor-enforce__box">
+        <h2>{{ $tc('nova-two-factor.enforce.title') }}</h2>
+        <p>{{ $tc('nova-two-factor.enforce.text') }}</p>
+        <nova-two-factor-profile-card @enabled="onEnabled" />
+    </div>
+</div>
+{% endblock %}

@@ -1,4 +1,7 @@
 import './service/otp-interceptor';
+import './service/confirm-interceptor';
+import './component/nova-two-factor-enforce';
+import './extension/sw-desktop';
 import './component/nova-two-factor-card';
 import './component/nova-two-factor-profile-card';
 import './component/nova-two-factor-user-card';

@@ -13,6 +13,7 @@
         <ul>
             <li v-for="item in recoveryCodes" :key="item"><code>{{ formatCode(item) }}</code></li>
         </ul>
+        <mt-button size="small" variant="secondary" @click="printCodes">{{ $tc('nova-two-factor.profile.print') }}</mt-button>
     </div>
 
     <template v-if="enabled">

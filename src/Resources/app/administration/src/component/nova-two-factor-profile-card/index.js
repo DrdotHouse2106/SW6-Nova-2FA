@@ -1,5 +1,6 @@
 import template from './nova-two-factor-profile-card.html.twig';
 import qrcode from '../../vendor/qrcode';
+import printRecoveryCodes from '../../service/print-codes';
 
 const { Component, Mixin } = Shopware;
 
@@ -10,6 +11,8 @@ Component.register('nova-two-factor-profile-card', {
     template,
 
     inject: ['loginService'],
+
+    emits: ['enabled'],
 
     mixins: [Mixin.getByName('notification')],
 
@@ -90,6 +93,7 @@ Component.register('nova-two-factor-profile-card', {
                 this.setup = null;
                 this.createNotificationSuccess({ message: this.$tc('nova-two-factor.profile.enabled') });
                 await this.load();
+                this.$emit('enabled');
             }
         },
 
@@ -107,6 +111,19 @@ Component.register('nova-two-factor-profile-card', {
                 this.recoveryCodes = null;
                 this.createNotificationSuccess({ message: this.$tc('nova-two-factor.profile.disabled') });
                 await this.load();
+            }
+        },
+
+        printCodes() {
+            const user = Shopware.Store?.get?.('session')?.currentUser;
+            const ok = printRecoveryCodes(this.recoveryCodes || [], {
+                title: this.$tc('nova-two-factor.profile.printTitle'),
+                account: `${window.location.host} – ${user?.username || 'Administration'}`,
+                note: this.$tc('nova-two-factor.profile.printNote'),
+                date: new Date().toLocaleString(),
+            });
+            if (!ok) {
+                this.createNotificationError({ message: this.$tc('nova-two-factor.profile.printBlocked') });
             }
         },
 

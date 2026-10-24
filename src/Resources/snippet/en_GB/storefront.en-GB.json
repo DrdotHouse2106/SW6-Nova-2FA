@@ -23,7 +23,10 @@
             "title": "Your recovery codes",
             "text": "Each code works once if you cannot access your app. Write them down or print them now – they are only shown this one time.",
             "remaining": "%count% recovery codes left.",
-            "regenerate": "New recovery codes"
+            "regenerate": "New recovery codes",
+            "print": "Print / save as PDF",
+            "printTitle": "Recovery codes – two-factor login",
+            "printNote": "Each code works exactly once if the authenticator app is not available. Keep them safe – not next to your phone."
         },
         "verify": {
             "title": "Confirmation required",

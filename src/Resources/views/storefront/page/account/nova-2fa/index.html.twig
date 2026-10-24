@@ -19,6 +19,13 @@
                                 <li><code>{{ code|slice(0, 5) }}-{{ code|slice(5) }}</code></li>
                             {% endfor %}
                         </ul>
+                        <button type="button" class="btn btn-secondary"
+                                data-nova-2fa-print="{{ tf.recoveryCodes|json_encode|e('html_attr') }}"
+                                data-nova-2fa-print-title="{{ 'novaTwoFactor.recovery.printTitle'|trans|striptags|e('html_attr') }}"
+                                data-nova-2fa-print-account="{{ (context.salesChannel.translated.name ~ ' – ' ~ context.customer.email)|e('html_attr') }}"
+                                data-nova-2fa-print-note="{{ 'novaTwoFactor.recovery.printNote'|trans|striptags|e('html_attr') }}">
+                            {{ 'novaTwoFactor.recovery.print'|trans|sw_sanitize }}
+                        </button>
                     </div>
                 </div>
             {% endblock %}

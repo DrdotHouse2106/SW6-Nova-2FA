@@ -7,6 +7,15 @@
         <title lang="de-DE">Zwei-Faktor-Anmeldung</title>
 
         <input-field type="bool">
+            <name>adminRequired</name>
+            <label>Two-factor login mandatory for the administration</label>
+            <label lang="de-DE">Zwei-Faktor-Anmeldung für die Administration verpflichtend</label>
+            <helpText lang="de-DE">Nur unter „Alle Verkaufskanäle“ wirksam. Benutzer ohne 2FA müssen sie nach der Anmeldung zuerst im Profil einrichten und können vorher nichts ändern. Integrationen (API-Zugänge) dürfen dann keine Benutzer, Rollen oder Zugänge anlegen. Vorher die eigene 2FA einrichten! Unabhängig davon verlangt das Anlegen/Ändern von Benutzern, Rollen und API-Zugängen immer einen frischen Code, wenn der Benutzer 2FA hat.</helpText>
+            <helpText>Only effective under "All sales channels". Users without 2FA must set it up first and cannot change anything before. Integrations may not create users, roles or access keys.</helpText>
+            <defaultValue>false</defaultValue>
+        </input-field>
+
+        <input-field type="bool">
             <name>customerEnabled</name>
             <label>Offer two-factor login to customers</label>
             <label lang="de-DE">Zwei-Faktor-Anmeldung für Kunden anbieten</label>

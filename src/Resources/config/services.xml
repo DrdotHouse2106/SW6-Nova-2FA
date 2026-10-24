@@ -27,6 +27,13 @@
             <tag name="kernel.event_subscriber"/>
         </service>
 
+        <service id="Nova\TwoFactor\Subscriber\AdminGuardSubscriber">
+            <argument type="service" id="nova_two_factor.user_store"/>
+            <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
+            <argument type="service" id="cache.object"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
         <service id="Nova\TwoFactor\Command\ResetUserCommand">
             <argument type="service" id="nova_two_factor.user_store"/>
             <argument type="service" id="Doctrine\DBAL\Connection"/>

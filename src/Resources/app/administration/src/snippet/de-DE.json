@@ -35,7 +35,22 @@
             "disabled": "Zwei-Faktor-Anmeldung abgeschaltet.",
             "recoveryTitle": "Ihre Wiederherstellungscodes",
             "recoveryText": "Jeder Code funktioniert einmal, falls die App nicht verfügbar ist. Jetzt notieren – sie werden nicht wieder angezeigt.",
-            "error": "Aktion fehlgeschlagen."
+            "error": "Aktion fehlgeschlagen.",
+            "print": "Drucken / als PDF speichern",
+            "printTitle": "Wiederherstellungscodes – Zwei-Faktor-Anmeldung",
+            "printNote": "Jeder Code funktioniert genau einmal, falls die Authenticator-App nicht verfügbar ist. Sicher aufbewahren, z. B. im Tresor oder Passwort-Manager – nicht neben dem Handy.",
+            "printBlocked": "Das Druckfenster wurde blockiert. Bitte Pop-ups für die Administration erlauben."
+        },
+        "confirm": {
+            "title": "Mit 2FA bestätigen",
+            "text": "Benutzer, Rollen und API-Zugänge lassen sich nur mit dem aktuellen Code aus Ihrer Authenticator-App anlegen oder ändern.",
+            "invalid": "Der Code war ungültig – bitte erneut eingeben.",
+            "cancel": "Abbrechen",
+            "submit": "Bestätigen"
+        },
+        "enforce": {
+            "title": "Zwei-Faktor-Anmeldung einrichten",
+            "text": "Für diese Administration ist die Zwei-Faktor-Anmeldung Pflicht. Bitte jetzt einrichten – vorher sind keine Änderungen möglich."
         }
     }
 }

@@ -38,7 +38,11 @@ class AdminTwoFactorController
     {
         $userId = $this->userId($context);
 
-        return $userId === null ? $this->denied() : new JsonResponse(['enabled' => $this->userStore->isEnabled($userId), 'status' => $this->userStore->status($userId)]);
+        return $userId === null ? $this->denied() : new JsonResponse([
+            'enabled' => $this->userStore->isEnabled($userId),
+            'status' => $this->userStore->status($userId),
+            'required' => $this->config->getBool('NovaTwoFactor.config.adminRequired'),
+        ]);
     }
 
     #[Route(path: '/api/_action/nova-2fa/me/setup', name: 'api.action.nova_2fa.me.setup', methods: ['POST'])]
