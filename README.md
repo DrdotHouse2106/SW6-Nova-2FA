@@ -43,6 +43,8 @@ bin/console cache:clear
 
 **Empfehlung:** Zuerst die eigene 2FA im Profil einrichten und testen, dann unter „Alle Verkaufskanäle“ **„Zwei-Faktor-Anmeldung für die Administration verpflichtend“** einschalten. Alle anderen Benutzer werden bei der nächsten Anmeldung zur Einrichtung geführt.
 
+**Schnittstellen-Benutzer (ohne Zwei-Faktor-Anmeldung):** Benutzer, mit denen sich Programme wie ein ERP anmelden. Sie brauchen keinen Code, dürfen aber keine Benutzer, Rollen, API-Zugänge oder 2FA-Einstellungen ändern.
+
 ## Grenzen
 
 - Gilt für die Storefront. Anmeldungen über die Store-API (z. B. eine App) fragen keinen Code ab.
@@ -98,6 +100,12 @@ bin/console cache:clear
 **Ursache:** Im Pflicht-Modus dürfen Integrationen keine Benutzer, Rollen oder Zugänge anlegen – sie können keinen zweiten Faktor nachweisen
 
 **Lösung:** Zugänge von Hand in der Administration anlegen. Normale Daten (Produkte, Bestellungen …) ändern Integrationen weiterhin
+
+### ERP (z. B. weclapp) meldet „NOVA_2FA_REQUIRED“ bei der Synchronisation
+
+**Ursache:** Das ERP meldet sich mit Benutzername und Passwort eines Admin-Benutzers an, der 2FA eingerichtet hat – einen Code kann das Programm nicht eingeben
+
+**Lösung:** Eigenen Benutzer für das ERP anlegen (z. B. „weclapp“, langes Zufallspasswort, keine 2FA einrichten), in den Plugin-Einstellungen unter *Schnittstellen-Benutzer* auswählen und die Zugangsdaten im ERP eintragen. Den eigenen Admin-Zugang nie dafür verwenden. Bietet das ERP die Anbindung per Integration (Zugangs-ID + Sicherheitsschlüssel), ist das die bessere Wahl – Integrationen sind von der Code-Abfrage nicht betroffen
 
 ### Druckfenster für die Wiederherstellungscodes öffnet sich nicht
 

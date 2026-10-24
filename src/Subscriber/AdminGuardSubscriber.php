@@ -60,10 +60,12 @@ class AdminGuardSubscriber implements EventSubscriberInterface
         $protectedWrite = $this->isProtectedWrite($request, $route);
         $userId = $source->getUserId();
 
-        // Integration (API-Zugang ohne Benutzer)
-        if ($userId === null) {
-            if ($required && $protectedWrite) {
-                $this->deny($event, 'NOVA_2FA_INTEGRATION_DENIED', 'Integrationen dürfen keine Benutzer, Rollen oder API-Zugänge anlegen oder ändern, solange die Zwei-Faktor-Anmeldung für die Administration verpflichtend ist.');
+        // Integration (API-Zugang ohne Benutzer) oder Schnittstellen-Benutzer: wie eine Integration behandeln
+        if ($userId === null || AdminLoginSubscriber::isApiUser($this->config, $userId)) {
+            if (($required || $userId !== null) && $protectedWrite) {
+                $this->deny($event, 'NOVA_2FA_INTEGRATION_DENIED', $userId !== null
+                    ? 'Schnittstellen-Benutzer dürfen keine Benutzer, Rollen, API-Zugänge oder die Zwei-Faktor-Einstellungen ändern.'
+                    : 'Integrationen dürfen keine Benutzer, Rollen oder API-Zugänge anlegen oder ändern, solange die Zwei-Faktor-Anmeldung für die Administration verpflichtend ist.');
             }
 
             return;
@@ -115,6 +117,12 @@ class AdminGuardSubscriber implements EventSubscriberInterface
     {
         if (preg_match('/^api\.([a-z_]+)\.(create|update|delete)$/', $route, $match)) {
             return \in_array($match[1], self::PROTECTED_ENTITIES, true);
+        }
+
+        // Einstellungen dieses Plugins (z. B. Liste der Schnittstellen-Benutzer) nur mit Code ändern
+        if (str_starts_with($route, 'api.action.core.save.system-config')
+            && str_contains((string) $request->getContent(), 'NovaTwoFactor.config.')) {
+            return true;
         }
 
         if ($route === 'api.action.sync') {

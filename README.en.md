@@ -20,3 +20,7 @@ Two-factor login with an authenticator app (TOTP, RFC 6238) for the **administra
 Troubleshooting: codes always invalid → check phone/server time sync; lost phone → reset in the administration after verifying identity; no QR code → `theme:compile`.
 
 License: MIT. Includes qrcode-generator (MIT).
+### ERP (e.g. weclapp) reports "NOVA_2FA_REQUIRED" during sync
+
+Create a dedicated user for the ERP (long random password, no 2FA), select it under *Interface users* in the plugin settings and enter its credentials in the ERP. Never use your own admin account. An integration (access key) is the better choice if the ERP supports it.
+

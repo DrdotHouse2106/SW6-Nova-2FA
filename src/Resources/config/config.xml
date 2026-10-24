@@ -15,6 +15,16 @@
             <defaultValue>false</defaultValue>
         </input-field>
 
+        <component name="sw-entity-multi-id-select">
+            <name>apiUserIds</name>
+            <entity>user</entity>
+            <labelProperty>username</labelProperty>
+            <label>Interface users (without two-factor login)</label>
+            <label lang="de-DE">Schnittstellen-Benutzer (ohne Zwei-Faktor-Anmeldung)</label>
+            <helpText lang="de-DE">Für Programme, die sich mit Benutzername und Passwort anmelden (z. B. ERP wie weclapp). Diese Benutzer melden sich ohne Code an und dürfen trotz Pflicht-Modus Daten ändern – aber nie Benutzer, Rollen oder API-Zugänge. Nur eigene Benutzer dafür anlegen (nicht den eigenen Admin-Zugang!) mit langem Zufallspasswort. Änderungen an dieser Liste verlangen einen Code.</helpText>
+            <helpText>For programs logging in with username and password (e.g. ERP). These users log in without a code and may change data even in mandatory mode – but never users, roles or access keys. Use dedicated users with a long random password.</helpText>
+        </component>
+
         <input-field type="bool">
             <name>customerEnabled</name>
             <label>Offer two-factor login to customers</label>

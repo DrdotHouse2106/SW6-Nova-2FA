@@ -1,3 +1,7 @@
+# 1.3.0
+- Neu: **Schnittstellen-Benutzer (ohne Zwei-Faktor-Anmeldung)** – für Programme wie ein ERP (z. B. weclapp), die sich mit Benutzername und Passwort anmelden. Sie brauchen keinen Code, dürfen aber nie Benutzer, Rollen, API-Zugänge oder die 2FA-Einstellungen ändern
+- Änderungen an den Einstellungen der Zwei-Faktor-Anmeldung verlangen jetzt einen frischen Code
+
 # 1.2.3
 - Kunden, die in Nova Upload (ab 1.2.0) unter „Kunden mit Zugriff auf den Download-Bereich“ ausgewählt sind, können die Zwei-Faktor-Anmeldung einrichten – auch ohne Zusatzfeld
 

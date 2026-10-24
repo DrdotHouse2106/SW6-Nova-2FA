@@ -59,6 +59,11 @@ class AdminLoginSubscriber implements EventSubscriberInterface
             return;
         }
 
+        if (self::isApiUser($this->config, Uuid::fromBytesToHex((string) $user['id']))) {
+            // Schnittstellen-Benutzer (z. B. ERP): normale Passwort-Anmeldung ohne Code
+            return;
+        }
+
         $hash = (string) $user['password'];
         $code = trim($request->request->getString(self::FIELD));
 
@@ -103,6 +108,14 @@ class AdminLoginSubscriber implements EventSubscriberInterface
         } elseif ($result !== 'ok' && $result !== 'recovery') {
             $this->deny($event, 'NOVA_2FA_INVALID', 'Der Code ist ungültig.');
         }
+    }
+
+    /** In den Einstellungen als Schnittstellen-Benutzer (ohne 2FA) ausgewählt? */
+    public static function isApiUser(SystemConfigService $config, string $userId): bool
+    {
+        $ids = $config->get('NovaTwoFactor.config.apiUserIds');
+
+        return \is_array($ids) && \in_array($userId, $ids, true);
     }
 
     /**

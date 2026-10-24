@@ -1,3 +1,7 @@
+# 1.3.0
+- New: interface users without two-factor login (for ERP systems logging in with username and password); they can never change users, roles, access keys or the 2FA settings
+- Changing the 2FA settings now requires a fresh code
+
 # 1.2.3
 - Customers selected in Nova Upload's download-area access list can set up two-factor login
 
