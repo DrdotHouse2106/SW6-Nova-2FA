@@ -8,6 +8,7 @@ use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Event\ControllerEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
@@ -77,7 +78,7 @@ class AdminLoginSubscriber implements EventSubscriberInterface
 
             $code = $split[1];
             // Shopware prüft danach nur noch das reine Passwort
-            $request->request->set('password', $split[0]);
+            self::replacePassword($request, $split[0]);
         } else {
             $userId = Uuid::fromBytesToHex((string) $user['id']);
             if (!$this->userStore->isEnabled($userId)) {
@@ -101,6 +102,25 @@ class AdminLoginSubscriber implements EventSubscriberInterface
             $this->deny($event, 'NOVA_2FA_LOCKED', 'Zu viele Fehlversuche. Bitte später erneut versuchen.');
         } elseif ($result !== 'ok' && $result !== 'recovery') {
             $this->deny($event, 'NOVA_2FA_INVALID', 'Der Code ist ungültig.');
+        }
+    }
+
+    /**
+     * Passwort in der Anfrage ersetzen – in den Formulardaten UND im JSON-Text: Shopware reicht die Anfrage
+     * über den PSR-Brückenbaustein an OAuth weiter, der bei JSON den ursprünglichen Text neu einliest.
+     */
+    public static function replacePassword(Request $request, string $password): void
+    {
+        $request->request->set('password', $password);
+
+        $data = json_decode((string) $request->getContent(), true);
+        if (\is_array($data) && \array_key_exists('password', $data)) {
+            $data['password'] = $password;
+            $json = (string) json_encode($data);
+            // Der Inhalt ist in Symfony nicht per Setter änderbar
+            (function () use ($json): void {
+                $this->content = $json;
+            })->call($request);
         }
     }
 

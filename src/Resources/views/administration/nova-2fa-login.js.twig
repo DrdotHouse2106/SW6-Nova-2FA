@@ -1,0 +1,141 @@
+{% verbatim %}
+(function () {
+    'use strict';
+
+    var en = (navigator.language || '').toLowerCase().indexOf('de') !== 0;
+    var t = en ? {
+        title: 'Two-factor authentication',
+        text: 'Enter the 6-digit code from your authenticator app or a recovery code.',
+        placeholder: '123456',
+        submit: 'Log in',
+        cancel: 'Cancel',
+        invalid: 'The code is wrong or expired. Please log in again.',
+        locked: 'Too many wrong codes. Login is locked for a few minutes.'
+    } : {
+        title: 'Zwei-Faktor-Anmeldung',
+        text: 'Geben Sie den 6-stelligen Code aus Ihrer Authenticator-App oder einen Wiederherstellungscode ein.',
+        placeholder: '123456',
+        submit: 'Anmelden',
+        cancel: 'Abbrechen',
+        invalid: 'Der Code ist falsch oder abgelaufen. Bitte erneut anmelden.',
+        locked: 'Zu viele falsche Codes. Die Anmeldung ist für einige Minuten gesperrt.'
+    };
+
+    function el(tag, style, text) {
+        var node = document.createElement(tag);
+        if (style) { node.style.cssText = style; }
+        if (text) { node.textContent = text; }
+        return node;
+    }
+
+    function askCode() {
+        return new Promise(function (resolve) {
+            var overlay = el('div', 'position:fixed;inset:0;z-index:100000;background:rgba(10,20,30,.55);display:flex;align-items:center;justify-content:center;font-family:Inter,-apple-system,Segoe UI,sans-serif;');
+            var box = el('form', 'background:#fff;border-radius:8px;padding:28px;width:min(380px,calc(100vw - 32px));box-shadow:0 10px 40px rgba(0,0,0,.25);color:#1b2a38;');
+            box.setAttribute('data-nova-2fa-login', '');
+            var input = el('input', 'width:100%;box-sizing:border-box;font-size:24px;letter-spacing:4px;text-align:center;padding:10px;border:1px solid #c5ced8;border-radius:4px;margin:16px 0;');
+            input.setAttribute('autocomplete', 'one-time-code');
+            input.setAttribute('inputmode', 'numeric');
+            input.setAttribute('maxlength', '11');
+            input.placeholder = t.placeholder;
+            var actions = el('div', 'display:flex;gap:8px;justify-content:flex-end;');
+            var cancel = el('button', 'padding:8px 16px;border:1px solid #c5ced8;background:#fff;border-radius:4px;cursor:pointer;', t.cancel);
+            cancel.type = 'button';
+            var submit = el('button', 'padding:8px 16px;border:0;background:#189eff;color:#fff;border-radius:4px;cursor:pointer;font-weight:600;', t.submit);
+            submit.type = 'submit';
+            actions.appendChild(cancel);
+            actions.appendChild(submit);
+            box.appendChild(el('h3', 'margin:0 0 8px;font-size:18px;', t.title));
+            box.appendChild(el('p', 'margin:0;font-size:14px;line-height:1.5;color:#52667a;', t.text));
+            box.appendChild(input);
+            box.appendChild(actions);
+            overlay.appendChild(box);
+            document.body.appendChild(overlay);
+            setTimeout(function () { input.focus(); }, 0);
+
+            function close(value) {
+                overlay.remove();
+                resolve(value);
+            }
+            box.addEventListener('submit', function (e) {
+                e.preventDefault();
+                var value = input.value.replace(/\s+/g, '');
+                if (value === '') { input.focus(); return; }
+                close(value);
+            });
+            cancel.addEventListener('click', function () { close(null); });
+            overlay.addEventListener('keydown', function (e) { if (e.key === 'Escape') { close(null); } });
+        });
+    }
+
+    function notice(message) {
+        var bar = el('div', 'position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:100001;background:#de294c;color:#fff;padding:12px 18px;border-radius:6px;font:14px Inter,-apple-system,Segoe UI,sans-serif;box-shadow:0 4px 16px rgba(0,0,0,.2);max-width:calc(100vw - 32px);', message);
+        bar.setAttribute('data-nova-2fa-notice', '');
+        document.body.appendChild(bar);
+        setTimeout(function () { bar.remove(); }, 6000);
+    }
+
+    function errorCode(text) {
+        try {
+            var json = JSON.parse(text);
+            return (json && json.errors && json.errors[0] && json.errors[0].code) || '';
+        } catch (e) {
+            return '';
+        }
+    }
+
+    var open = XMLHttpRequest.prototype.open;
+    var send = XMLHttpRequest.prototype.send;
+
+    XMLHttpRequest.prototype.open = function (method, url) {
+        this._novaTokenRequest = String(method).toUpperCase() === 'POST' && /\/oauth\/token(\?|$)/.test(String(url));
+        this._novaUrl = url;
+        return open.apply(this, arguments);
+    };
+
+    XMLHttpRequest.prototype.send = function (body) {
+        var xhr = this;
+        var data = null;
+        if (xhr._novaTokenRequest && typeof body === 'string') {
+            try { data = JSON.parse(body); } catch (e) { data = null; }
+        }
+        if (!data || data.grant_type !== 'password' || data.nova_otp) {
+            return send.apply(xhr, arguments);
+        }
+
+        // Vorab prüfen, ob für dieses Konto ein Code nötig ist (Passwort wird dabei serverseitig geprüft)
+        fetch(xhr._novaUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+            body: body,
+            credentials: 'same-origin'
+        }).then(function (response) {
+            if (response.status !== 401) {
+                send.call(xhr, body);
+                return;
+            }
+            return response.text().then(function (text) {
+                if (errorCode(text) !== 'NOVA_2FA_REQUIRED') {
+                    send.call(xhr, body);
+                    return;
+                }
+                return askCode().then(function (code) {
+                    if (code === null) {
+                        send.call(xhr, body);
+                        return;
+                    }
+                    data.nova_otp = code;
+                    xhr.addEventListener('loadend', function () {
+                        var c = errorCode(xhr.responseText || '');
+                        if (c === 'NOVA_2FA_INVALID') { notice(t.invalid); }
+                        if (c === 'NOVA_2FA_LOCKED') { notice(t.locked); }
+                    });
+                    send.call(xhr, JSON.stringify(data));
+                });
+            });
+        }).catch(function () {
+            send.call(xhr, body);
+        });
+    };
+})();
+{% endverbatim %}

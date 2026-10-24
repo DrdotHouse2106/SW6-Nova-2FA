@@ -1,0 +1,9 @@
+{% sw_extends '@Administration/administration/index.html.twig' %}
+
+{% block administration_login_scripts %}
+    {{ parent() }}
+    {# Nova 2FA: eigenes Fenster für den Code beim Admin-Login. Plugin-Bundles lädt Shopware erst nach dem Login, deshalb steht dieses Skript direkt in der Seite. #}
+    <script nonce="{{ cspNonce }}">
+        {% include '@NovaTwoFactor/administration/nova-2fa-login.js.twig' %}
+    </script>
+{% endblock %}

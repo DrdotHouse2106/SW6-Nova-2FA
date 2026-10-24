@@ -1,3 +1,7 @@
+# 1.2.2
+- Neu: **Eigenes Fenster für den Code bei der Admin-Anmeldung** – nach Benutzername und Passwort öffnet sich ein Fenster für den 6-stelligen Code (oder einen Wiederherstellungscode). Bei falschem Code erscheint ein Hinweis
+- Fehler behoben: „Passwort und Code im Passwortfeld“ wurde abgelehnt, weil Shopware die Anmeldedaten bei JSON-Anfragen aus dem Rohtext neu einliest. Jetzt wird auch dort das reine Passwort übergeben (funktioniert weiter als Ausweichweg)
+
 # 1.2.1
 - **Fehler behoben: Anmeldung in der Administration mit 2FA war nicht möglich.** Shopware lädt Plugin-Erweiterungen erst nach der Anmeldung, das Code-Feld erschien daher nie. Jetzt: ins Passwortfeld das Passwort und direkt dahinter den 6-stelligen Code eingeben („MeinPasswort123456“, Leerzeichen erlaubt; Wiederherstellungscode: „MeinPasswort ABCDE-12345“)
 - Hinweis zur Anmeldung im Profil und im Einrichtungsfenster

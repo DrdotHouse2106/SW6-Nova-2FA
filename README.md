@@ -10,7 +10,7 @@ Für Kunden ist 2FA pro Verkaufskanal einschaltbar und dann freiwillig. Konten m
 
 | Funktion | Beschreibung |
 |---|---|
-| **Administration** | Jeder Benutzer richtet 2FA unter *Profil* ein (QR-Code, Wiederherstellungscodes). **Anmeldung: ins Passwortfeld das Passwort und direkt dahinter den 6-stelligen Code**, z. B. `MeinPasswort123456` (Leerzeichen dazwischen erlaubt; Wiederherstellungscode: `MeinPasswort ABCDE-12345`). Shopware lädt Plugin-Erweiterungen erst nach der Anmeldung, daher gibt es auf der Anmeldeseite kein eigenes Code-Feld. Geprüft wird erst nach richtigem Passwort – ohne Passwort lässt sich weder erkennen, ob 2FA aktiv ist, noch das Konto sperren. *Einstellungen → Benutzer*: Status und Zurücksetzen für andere Benutzer |
+| **Administration** | Jeder Benutzer richtet 2FA unter *Profil* ein (QR-Code, Wiederherstellungscodes). **Anmeldung:** Benutzername und Passwort eingeben – danach öffnet sich ein Fenster für den 6-stelligen Code (oder einen Wiederherstellungscode). Ausweichweg: ins Passwortfeld das Passwort und direkt dahinter den Code, z. B. `MeinPasswort123456` (Leerzeichen erlaubt). Geprüft wird erst nach richtigem Passwort – ohne Passwort lässt sich weder erkennen, ob 2FA aktiv ist, noch das Konto sperren. *Einstellungen → Benutzer*: Status und Zurücksetzen für andere Benutzer |
 | **Pflicht für die Administration** | Schalter „Zwei-Faktor-Anmeldung für die Administration verpflichtend“: Benutzer ohne 2FA sehen nach der Anmeldung ein Einrichtungsfenster und können vorher nichts ändern (Lesen geht). Integrationen (API-Zugänge) dürfen dann keine Benutzer, Rollen oder Zugänge anlegen |
 | **Zugänge nur mit Code** | Benutzer, Rollen, Integrationen (API-Zugänge) und Zugangsschlüssel anlegen, ändern oder löschen verlangt immer den aktuellen App-Code – ein Bestätigungsfenster fragt ihn ab, danach 5 Minuten gültig. Schützt vor heimlich angelegten Hintertür-Zugängen, auch wenn jemand eine offene Sitzung erwischt |
 | **Codes drucken** | Wiederherstellungscodes lassen sich direkt drucken oder als PDF speichern (Druckdialog → „Als PDF speichern“) – im Profil und im Kundenkonto |
@@ -67,7 +67,13 @@ bin/console cache:clear
 
 **Ursache:** Für den Benutzer ist 2FA eingerichtet, und es wurde nur das Passwort eingegeben (bis Version 1.2.0 gab es dafür keinen Weg ohne eigenes Code-Feld)
 
-**Lösung:** Ab 1.2.1 ins Passwortfeld **Passwort und direkt dahinter den 6-stelligen Code** eingeben. Kommt man gar nicht mehr hinein (z. B. noch Version 1.2.0 installiert): in Plesk → *Datenbanken* → *phpMyAdmin* → *SQL* `DELETE FROM nova_two_factor_user;` ausführen – das entfernt nur die Admin-2FA, danach Anmeldung mit Passwort. Oder per SSH `bin/console nova-2fa:reset-user <benutzername>`
+**Lösung:** Ab 1.2.2 öffnet sich nach dem Passwort ein eigenes Fenster für den Code. Bleibt es aus (z. B. Browser-Cache), Seite mit Strg+F5 neu laden oder Passwort und direkt dahinter den Code ins Passwortfeld eingeben. Kommt man gar nicht mehr hinein (z. B. noch Version 1.2.0 installiert): in Plesk → *Datenbanken* → *phpMyAdmin* → *SQL* `DELETE FROM nova_two_factor_user;` ausführen – das entfernt nur die Admin-2FA, danach Anmeldung mit Passwort. Oder per SSH `bin/console nova-2fa:reset-user <benutzername>`
+
+### Passwort + Code im Passwortfeld wird abgelehnt (Version 1.2.1)
+
+**Ursache:** Die Administration schickt die Anmeldung als JSON. Shopware liest diesen Rohtext für die Passwortprüfung neu ein, daher kam das Passwort samt Code dort an
+
+**Lösung:** Auf 1.2.2 aktualisieren – das Plugin ersetzt das Passwort jetzt auch im Rohtext. Zusätzlich gibt es das eigene Code-Fenster
 
 ### Admin hat Handy und Wiederherstellungscodes verloren
 

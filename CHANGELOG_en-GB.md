@@ -1,3 +1,7 @@
+# 1.2.2
+- New: separate window for the code at administration login (opens after username and password; recovery codes accepted)
+- Fixed: "password followed by code" in the password field was rejected because Shopware re-reads JSON login data from the raw body
+
 # 1.2.1
 - Fixed: administration login with 2FA was impossible because Shopware loads plugin extensions only after login. Now enter password followed by the 6-digit code in the password field.
 
