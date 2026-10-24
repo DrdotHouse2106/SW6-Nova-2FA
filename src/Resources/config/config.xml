@@ -6,6 +6,15 @@
         <title>Two-factor login</title>
         <title lang="de-DE">Zwei-Faktor-Anmeldung</title>
 
+        <input-field type="bool">
+            <name>customerEnabled</name>
+            <label>Offer two-factor login to customers</label>
+            <label lang="de-DE">Zwei-Faktor-Anmeldung für Kunden anbieten</label>
+            <helpText lang="de-DE">Zeigt allen Kunden dieses Verkaufskanals unter „Mein Konto“ den Punkt „Zwei-Faktor-Anmeldung“ (freiwillig). Aus: nur Konten mit Zugriff auf den Nova-Upload-Download-Bereich bekommen ihn – dort ist 2FA Pflicht. Admin-Benutzer richten 2FA unabhängig davon in ihrem Profil ein.</helpText>
+            <helpText>Shows "Two-factor login" under "My account" for all customers of this sales channel (optional). Off: only accounts with access to the Nova Upload download area get it.</helpText>
+            <defaultValue>false</defaultValue>
+        </input-field>
+
         <input-field type="int">
             <name>ttlHours</name>
             <label>Code valid for (hours)</label>

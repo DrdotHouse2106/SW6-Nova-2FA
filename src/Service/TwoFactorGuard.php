@@ -55,6 +55,19 @@ class TwoFactorGuard
         }
     }
 
+    /**
+     * Darf dieses Kundenkonto 2FA einrichten/verwalten? Für alle Kunden, wenn im Verkaufskanal eingeschaltet;
+     * sonst nur Konten mit Zugriff auf den Nova-Upload-Download-Bereich oder mit bereits eingerichteter 2FA.
+     *
+     * @param array<string, mixed>|null $customFields
+     */
+    public function isAvailable(string $customerId, ?array $customFields, ?string $salesChannelId): bool
+    {
+        return $this->config->getBool('NovaTwoFactor.config.customerEnabled', $salesChannelId)
+            || !empty($customFields['nova_upload_access'])
+            || $this->isEnabled($customerId);
+    }
+
     public function ttlHours(?string $salesChannelId): int
     {
         return max(1, $this->config->getInt('NovaTwoFactor.config.ttlHours', $salesChannelId) ?: 12);

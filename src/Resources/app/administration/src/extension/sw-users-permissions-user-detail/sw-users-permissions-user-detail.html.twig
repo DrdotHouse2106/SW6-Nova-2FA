@@ -1,0 +1,5 @@
+{% block sw_setting_user_detail_card_user_interface %}
+    <nova-two-factor-user-card v-if="userId && !isCurrentUser" :user-id="userId" />
+
+    {% parent %}
+{% endblock %}

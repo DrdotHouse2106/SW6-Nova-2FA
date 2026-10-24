@@ -9,6 +9,33 @@
         "reset": "Reset 2FA",
         "resetConfirm": "The customer's two-factor login will be removed (e.g. lost phone). Verify the customer's identity first!",
         "resetDone": "Two-factor login reset.",
-        "resetError": "Reset failed."
+        "resetError": "Reset failed.",
+        "userOff": "This user has not set up two-factor login.",
+        "resetConfirmUser": "The user's two-factor login will be removed (e.g. lost phone). Verify the identity first!",
+        "login": {
+            "label": "Code from your authenticator app",
+            "help": "6-digit code – or one of your recovery codes",
+            "invalid": "The code is invalid.",
+            "locked": "Too many failed attempts. Please try again later."
+        },
+        "profile": {
+            "title": "Two-factor login",
+            "intro": "In addition to your password, the login asks for a code from your authenticator app. Strongly recommended for all users.",
+            "start": "Set up now",
+            "step1": "Open your authenticator app and choose \"Add account\".",
+            "step2": "Scan the QR code.",
+            "step3": "Enter the code shown and confirm.",
+            "manual": "Cannot scan? Enter this key manually:",
+            "codeFromApp": "Code from the app",
+            "confirm": "Confirm",
+            "currentCode": "Current code (for changes)",
+            "regenerate": "New recovery codes",
+            "disable": "Turn off",
+            "enabled": "Two-factor login set up.",
+            "disabled": "Two-factor login turned off.",
+            "recoveryTitle": "Your recovery codes",
+            "recoveryText": "Each code works once if the app is not available. Write them down now – they are not shown again.",
+            "error": "Action failed."
+        }
     }
 }

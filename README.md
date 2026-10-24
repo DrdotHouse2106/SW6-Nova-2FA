@@ -2,14 +2,16 @@
 
 🇬🇧 [English version](README.en.md)
 
-**Zwei-Faktor-Anmeldung per Authenticator-App** für Kundenkonten in Shopware 6.6 und 6.7. Nach dem Passwort fragt der Shop nach dem 6-stelligen Code aus Google Authenticator, Microsoft Authenticator, 1Password, Authy o. Ä.
+**Zwei-Faktor-Anmeldung per Authenticator-App** für Shopware 6.6 und 6.7 – für die **Administration** (Shopware bringt dort keine mit) und optional für **Kundenkonten**. Nach dem Passwort wird der 6-stellige Code aus Google Authenticator, Microsoft Authenticator, 1Password, Authy o. Ä. abgefragt.
 
-Gedacht für Konten mit besonderen Rechten – z. B. den Download-Bereich von **Nova Upload**, in dem freigeschaltete Konten (Fertigung, Partner) hochgeladene Kundendateien abrufen. Für normale Kunden ist 2FA freiwillig.
+Für Kunden ist 2FA pro Verkaufskanal einschaltbar und dann freiwillig. Konten mit Zugriff auf den Download-Bereich von **Nova Upload** (Fertigung, Partner) haben sie immer – dort ist sie Pflicht.
 
 ## Funktionen
 
 | Funktion | Beschreibung |
 |---|---|
+| **Administration** | Jeder Benutzer richtet 2FA unter *Profil* ein (QR-Code, Wiederherstellungscodes). Bei der Anmeldung erscheint nach dem Passwort ein Code-Feld. Geprüft wird erst nach richtigem Passwort – ohne Passwort lässt sich weder erkennen, ob 2FA aktiv ist, noch das Konto sperren. *Einstellungen → Benutzer*: Status und Zurücksetzen für andere Benutzer |
+| **Notfall** | `bin/console nova-2fa:reset-user <benutzername>` entfernt die 2FA eines Admin-Benutzers (z. B. einziger Admin, Handy und Codes verloren) |
 | **Einrichtung im Kundenkonto** | *Mein Konto → Zwei-Faktor-Anmeldung*: QR-Code scannen (wird im Browser erzeugt, kein externer Dienst), Code bestätigen – fertig. Schlüssel zusätzlich zum Abtippen |
 | **Wiederherstellungscodes** | 8 Einmal-Codes bei der Einrichtung (nur einmal angezeigt), neu erzeugbar |
 | **Code nach dem Passwort** | Wer 2FA eingerichtet hat, sieht nach dem Login die Code-Abfrage. Bis dahin leiten alle Seiten dorthin, Änderungen werden abgelehnt |
@@ -34,12 +36,15 @@ bin/console cache:clear
 
 ## Einstellungen
 
-*Erweiterungen → Meine Erweiterungen → Nova 2FA → Konfigurieren* (pro Verkaufskanal): Gültigkeit in Stunden (12), Fehlversuche bis zur Sperre (5), Sperre in Minuten (15), Name in der App (leer = Name des Verkaufskanals).
+*Erweiterungen → Meine Erweiterungen → Nova 2FA → Konfigurieren* (pro Verkaufskanal): **Zwei-Faktor-Anmeldung für Kunden anbieten** (aus), Gültigkeit in Stunden (12), Fehlversuche bis zur Sperre (5), Sperre in Minuten (15), Name in der App (leer = Name des Verkaufskanals). Fehlversuche und Sperre gelten auch für die Administration (Einstellung „Alle Verkaufskanäle“).
+
+**Empfehlung:** Für alle Benutzer der Administration 2FA im Profil einrichten.
 
 ## Grenzen
 
 - Gilt für die Storefront. Anmeldungen über die Store-API (z. B. eine App) fragen keinen Code ab.
-- Shopware-Administratoren nutzen die eingebaute Zwei-Faktor-Anmeldung der Administration (*Profil → Zwei-Faktor-Authentifizierung*).
+- Integrationen (API-Zugangsschlüssel) und Single Sign-on der Administration sind nicht betroffen.
+- „Angemeldet bleiben“ in der Administration verlängert die Sitzung ohne neuen Code.
 
 ## Häufige Probleme und Lösungen
 
@@ -54,6 +59,24 @@ bin/console cache:clear
 **Ursache:** Ohne App und ohne Codes ist kein zweiter Faktor mehr vorhanden
 
 **Lösung:** In der Administration beim Kunden „2FA zurücksetzen“ – vorher die Identität prüfen (z. B. Rückruf). Danach meldet sich der Kunde nur mit Passwort an und richtet 2FA neu ein
+
+### Admin hat Handy und Wiederherstellungscodes verloren
+
+**Ursache:** Ohne zweiten Faktor ist keine Anmeldung in der Administration möglich
+
+**Lösung:** Ein anderer Admin setzt unter *Einstellungen → Benutzer → Benutzer → Zwei-Faktor-Anmeldung* zurück. Gibt es keinen: per SSH `bin/console nova-2fa:reset-user <benutzername>` ausführen (z. B. in Plesk unter *SSH-Terminal*), danach mit Passwort anmelden und 2FA im Profil neu einrichten
+
+### Admin-Anmeldung zeigt kein Code-Feld, obwohl 2FA eingerichtet ist
+
+**Ursache:** Die Administration wurde nach dem Update noch nicht neu geladen (alter Browser-Cache)
+
+**Lösung:** Seite mit Strg+F5 neu laden. Das Code-Feld erscheint, sobald Benutzername und Passwort stimmen
+
+### „Zwei-Faktor-Anmeldung“ fehlt im Kundenkonto
+
+**Ursache:** Für Kunden ist 2FA im Verkaufskanal nicht eingeschaltet
+
+**Lösung:** Nova 2FA → Konfigurieren → Verkaufskanal → „Zwei-Faktor-Anmeldung für Kunden anbieten“. Konten mit Zugriff auf den Nova-Upload-Download-Bereich sehen den Punkt immer
 
 ### QR-Code erscheint nicht
 

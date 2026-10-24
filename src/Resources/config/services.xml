@@ -12,6 +12,27 @@
             <argument type="service" id="Nova\TwoFactor\Service\SecretCipher"/>
         </service>
 
+        <!-- Admin-Benutzer: eigene Tabelle -->
+        <service id="nova_two_factor.user_store" class="Nova\TwoFactor\Service\TwoFactorStore">
+            <argument type="service" id="Doctrine\DBAL\Connection"/>
+            <argument type="service" id="Nova\TwoFactor\Service\SecretCipher"/>
+            <argument>nova_two_factor_user</argument>
+            <argument>user_id</argument>
+        </service>
+
+        <service id="Nova\TwoFactor\Subscriber\AdminLoginSubscriber">
+            <argument type="service" id="nova_two_factor.user_store"/>
+            <argument type="service" id="Doctrine\DBAL\Connection"/>
+            <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
+        <service id="Nova\TwoFactor\Command\ResetUserCommand">
+            <argument type="service" id="nova_two_factor.user_store"/>
+            <argument type="service" id="Doctrine\DBAL\Connection"/>
+            <tag name="console.command"/>
+        </service>
+
         <!-- Öffentlich: andere Plugins (z. B. Nova Upload) fragen hier, ob die 2FA bestätigt ist -->
         <service id="Nova\TwoFactor\Service\TwoFactorGuard" public="true">
             <argument type="service" id="Nova\TwoFactor\Service\TwoFactorStore"/>
@@ -38,6 +59,10 @@
 
         <service id="Nova\TwoFactor\Controller\AdminTwoFactorController" public="true">
             <argument type="service" id="Nova\TwoFactor\Service\TwoFactorStore"/>
+            <argument type="service" id="nova_two_factor.user_store"/>
+            <argument type="service" id="Nova\TwoFactor\Service\SecretCipher"/>
+            <argument type="service" id="cache.object"/>
+            <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
         </service>
     </services>
 </container>

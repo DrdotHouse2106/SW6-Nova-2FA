@@ -2,10 +2,12 @@
   "base": "/bundles/novatwofactor/administration/",
   "entryPoints": {
     "nova-two-factor": {
-      "css": [],
+      "css": [
+        "/bundles/novatwofactor/administration/assets/nova-two-factor-CZEXIJ1s.css"
+      ],
       "dynamic": [],
       "js": [
-        "/bundles/novatwofactor/administration/assets/nova-two-factor-BJkK-5xY.js"
+        "/bundles/novatwofactor/administration/assets/nova-two-factor-DsvC5VnO.js"
       ],
       "legacy": false,
       "preload": []

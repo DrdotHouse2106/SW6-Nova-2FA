@@ -36,6 +36,7 @@ class TwoFactorController extends StorefrontController
     #[Route(path: '/account/nova-2fa', name: 'frontend.nova_2fa.page', defaults: [PlatformRequest::ATTRIBUTE_LOGIN_REQUIRED => true, PlatformRequest::ATTRIBUTE_NO_STORE => true], methods: [Request::METHOD_GET])]
     public function page(Request $request, SalesChannelContext $context, CustomerEntity $customer): Response
     {
+        $this->assertAvailable($context, $customer);
         $session = $request->getSession();
         $pending = $session->get(TwoFactorGuard::SESSION_PENDING);
         $secret = \is_string($pending) ? $this->cipher->decrypt($pending) : null;
@@ -56,8 +57,9 @@ class TwoFactorController extends StorefrontController
     }
 
     #[Route(path: '/account/nova-2fa/setup', name: 'frontend.nova_2fa.setup', defaults: [PlatformRequest::ATTRIBUTE_LOGIN_REQUIRED => true], methods: [Request::METHOD_POST])]
-    public function setup(Request $request, CustomerEntity $customer): Response
+    public function setup(Request $request, SalesChannelContext $context, CustomerEntity $customer): Response
     {
+        $this->assertAvailable($context, $customer);
         if (!$this->store->isEnabled($customer->getId())) {
             $request->getSession()->set(TwoFactorGuard::SESSION_PENDING, $this->cipher->encrypt(Totp::generateSecret()));
         }
@@ -66,8 +68,9 @@ class TwoFactorController extends StorefrontController
     }
 
     #[Route(path: '/account/nova-2fa/confirm', name: 'frontend.nova_2fa.confirm', defaults: [PlatformRequest::ATTRIBUTE_LOGIN_REQUIRED => true], methods: [Request::METHOD_POST])]
-    public function confirm(Request $request, CustomerEntity $customer): Response
+    public function confirm(Request $request, SalesChannelContext $context, CustomerEntity $customer): Response
     {
+        $this->assertAvailable($context, $customer);
         $session = $request->getSession();
         $pending = $session->get(TwoFactorGuard::SESSION_PENDING);
         $secret = \is_string($pending) ? $this->cipher->decrypt($pending) : null;
@@ -170,6 +173,13 @@ class TwoFactorController extends StorefrontController
         }
 
         return $result;
+    }
+
+    private function assertAvailable(SalesChannelContext $context, CustomerEntity $customer): void
+    {
+        if ($customer->getGuest() || !$this->guard->isAvailable($customer->getId(), $customer->getCustomFields(), $context->getSalesChannelId())) {
+            throw $this->createNotFoundException();
+        }
     }
 
     /** Nur Pfade im Shop, keine fremden Adressen (Open Redirect) */

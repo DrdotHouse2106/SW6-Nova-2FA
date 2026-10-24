@@ -41,7 +41,7 @@ Component.register('nova-two-factor-card', {
         async load() {
             this.isLoading = true;
             try {
-                const response = await this.http().get(`_action/nova-2fa/${this.customerId}`, { headers: this.headers() });
+                const response = await this.http().get(`_action/nova-2fa/customer/${this.customerId}`, { headers: this.headers() });
                 this.enabled = response.data.enabled;
                 this.status = response.data.status;
             } catch {
@@ -54,7 +54,7 @@ Component.register('nova-two-factor-card', {
         async reset() {
             this.showConfirm = false;
             try {
-                await this.http().delete(`_action/nova-2fa/${this.customerId}`, { headers: this.headers() });
+                await this.http().delete(`_action/nova-2fa/customer/${this.customerId}`, { headers: this.headers() });
                 this.createNotificationSuccess({ message: this.$tc('nova-two-factor.resetDone') });
                 await this.load();
             } catch (error) {

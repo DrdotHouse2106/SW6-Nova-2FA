@@ -22,6 +22,7 @@ class NovaTwoFactor extends Plugin
         $connection = $this->container?->get(Connection::class);
         if ($connection instanceof Connection) {
             $connection->executeStatement('DROP TABLE IF EXISTS `nova_two_factor`');
+            $connection->executeStatement('DROP TABLE IF EXISTS `nova_two_factor_user`');
         }
     }
 }

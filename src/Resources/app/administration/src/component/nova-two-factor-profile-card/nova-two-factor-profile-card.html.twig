@@ -1,0 +1,47 @@
+{% block nova_two_factor_profile_card %}
+<mt-card
+    class="nova-two-factor-profile-card"
+    position-identifier="nova-two-factor-profile-card"
+    :title="$tc('nova-two-factor.profile.title')"
+    :is-loading="isLoading"
+>
+    <p class="nova-two-factor__intro">{{ $tc('nova-two-factor.profile.intro') }}</p>
+
+    <div v-if="recoveryCodes" class="nova-two-factor__recovery">
+        <strong>{{ $tc('nova-two-factor.profile.recoveryTitle') }}</strong>
+        <p>{{ $tc('nova-two-factor.profile.recoveryText') }}</p>
+        <ul>
+            <li v-for="item in recoveryCodes" :key="item"><code>{{ formatCode(item) }}</code></li>
+        </ul>
+    </div>
+
+    <template v-if="enabled">
+        <p><strong>✓ {{ $tc('nova-two-factor.on') }}</strong> · {{ $tc('nova-two-factor.since') }} {{ date(status && status.enabledAt) }} · {{ $tc('nova-two-factor.recoveryCodes') }}: {{ status ? status.recoveryCodes : 0 }}</p>
+        <div class="nova-two-factor__row">
+            <mt-text-field v-model="code" :label="$tc('nova-two-factor.profile.currentCode')" autocomplete="one-time-code" inputmode="numeric" />
+            <mt-button size="small" variant="secondary" :disabled="!code || isBusy" @click="regenerate">{{ $tc('nova-two-factor.profile.regenerate') }}</mt-button>
+            <mt-button size="small" variant="critical" :disabled="!code || isBusy" @click="disable">{{ $tc('nova-two-factor.profile.disable') }}</mt-button>
+        </div>
+    </template>
+
+    <template v-else-if="setup">
+        <ol class="nova-two-factor__steps">
+            <li>{{ $tc('nova-two-factor.profile.step1') }}</li>
+            <li>{{ $tc('nova-two-factor.profile.step2') }}</li>
+            <li>{{ $tc('nova-two-factor.profile.step3') }}</li>
+        </ol>
+        <div class="nova-two-factor__qr" v-html="qrSvg"></div>
+        <p class="nova-two-factor__intro">{{ $tc('nova-two-factor.profile.manual') }} <code>{{ secretGroups }}</code></p>
+        <div class="nova-two-factor__row">
+            <mt-text-field v-model="code" :label="$tc('nova-two-factor.profile.codeFromApp')" autocomplete="one-time-code" inputmode="numeric" />
+            <mt-button size="small" variant="primary" :disabled="!code || isBusy" @click="confirmSetup">{{ $tc('nova-two-factor.profile.confirm') }}</mt-button>
+            <mt-button size="small" variant="secondary" @click="setup = null">{{ $tc('global.default.cancel') }}</mt-button>
+        </div>
+    </template>
+
+    <template v-else>
+        <p>{{ $tc('nova-two-factor.off') }}</p>
+        <mt-button size="small" variant="primary" :disabled="isBusy" @click="startSetup">{{ $tc('nova-two-factor.profile.start') }}</mt-button>
+    </template>
+</mt-card>
+{% endblock %}

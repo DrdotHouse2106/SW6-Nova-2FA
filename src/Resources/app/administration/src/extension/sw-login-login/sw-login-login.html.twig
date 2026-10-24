@@ -1,0 +1,16 @@
+{% block sw_login_login_password_field %}
+    {% parent %}
+
+    <div v-if="novaOtpRequired" class="nova-two-factor-login">
+        <mt-text-field
+            v-model="novaOtp"
+            v-autofocus
+            name="nova-otp"
+            :label="$tc('nova-two-factor.login.label')"
+            :help-text="$tc('nova-two-factor.login.help')"
+            autocomplete="one-time-code"
+            inputmode="numeric"
+            required
+        />
+    </div>
+{% endblock %}

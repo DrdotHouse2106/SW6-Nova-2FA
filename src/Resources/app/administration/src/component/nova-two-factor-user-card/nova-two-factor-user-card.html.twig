@@ -1,0 +1,24 @@
+{% block nova_two_factor_user_card %}
+<mt-card
+    position-identifier="nova-two-factor-user-card"
+    :title="$tc('nova-two-factor.profile.title')"
+    :is-loading="isLoading"
+>
+    <p v-if="enabled">
+        <strong>✓ {{ $tc('nova-two-factor.on') }}</strong> · {{ $tc('nova-two-factor.since') }} {{ date(status && status.enabledAt) }} · {{ $tc('nova-two-factor.lastUsed') }} {{ date(status && status.lastUsedAt) }}
+    </p>
+    <p v-else>{{ $tc('nova-two-factor.userOff') }}</p>
+
+    <mt-button v-if="enabled && acl.can('user.editor')" size="small" variant="critical" @click="showConfirm = true">
+        {{ $tc('nova-two-factor.reset') }}
+    </mt-button>
+
+    <sw-modal v-if="showConfirm" :title="$tc('nova-two-factor.reset')" variant="small" @modal-close="showConfirm = false">
+        <p>{{ $tc('nova-two-factor.resetConfirmUser') }}</p>
+        <template #modal-footer>
+            <mt-button size="small" variant="secondary" @click="showConfirm = false">{{ $tc('global.default.cancel') }}</mt-button>
+            <mt-button size="small" variant="critical" @click="reset">{{ $tc('nova-two-factor.reset') }}</mt-button>
+        </template>
+    </sw-modal>
+</mt-card>
+{% endblock %}

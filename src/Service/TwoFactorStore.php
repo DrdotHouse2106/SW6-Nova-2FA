@@ -6,8 +6,8 @@ use Doctrine\DBAL\Connection;
 use Shopware\Core\Framework\Uuid\Uuid;
 
 /**
- * Speichert die eingerichtete 2FA je Kundenkonto: verschlüsselter Schlüssel,
- * gehashte Wiederherstellungscodes, Schutz gegen Wiederverwendung und Sperre nach Fehlversuchen.
+ * Speichert die eingerichtete 2FA je Konto (Kunde bzw. Admin-Benutzer – eigene Tabelle je Art):
+ * verschlüsselter Schlüssel, gehashte Wiederherstellungscodes, Schutz gegen Wiederverwendung und Sperre nach Fehlversuchen.
  */
 class TwoFactorStore
 {
@@ -16,13 +16,15 @@ class TwoFactorStore
     public function __construct(
         private readonly Connection $connection,
         private readonly SecretCipher $cipher,
+        private readonly string $table = 'nova_two_factor',
+        private readonly string $idColumn = 'customer_id',
     ) {
     }
 
     public function isEnabled(string $customerId): bool
     {
         return Uuid::isValid($customerId)
-            && $this->connection->fetchOne('SELECT 1 FROM `nova_two_factor` WHERE `customer_id` = :id', ['id' => Uuid::fromHexToBytes($customerId)]) !== false;
+            && $this->connection->fetchOne('SELECT 1 FROM `' . $this->table . '` WHERE `' . $this->idColumn . '` = :id', ['id' => Uuid::fromHexToBytes($customerId)]) !== false;
     }
 
     /**
@@ -32,7 +34,7 @@ class TwoFactorStore
     {
         $codes = $this->newRecoveryCodes();
         $this->connection->executeStatement(
-            'REPLACE INTO `nova_two_factor` (`customer_id`, `secret`, `recovery_codes`, `last_step`, `failed_attempts`, `locked_until`, `enabled_at`)
+            'REPLACE INTO `' . $this->table . '` (`' . $this->idColumn . '`, `secret`, `recovery_codes`, `last_step`, `failed_attempts`, `locked_until`, `enabled_at`)
              VALUES (:id, :secret, :codes, 0, 0, NULL, :now)',
             [
                 'id' => Uuid::fromHexToBytes($customerId),
@@ -48,7 +50,7 @@ class TwoFactorStore
     public function disable(string $customerId): void
     {
         if (Uuid::isValid($customerId)) {
-            $this->connection->delete('nova_two_factor', ['customer_id' => Uuid::fromHexToBytes($customerId)]);
+            $this->connection->delete($this->table, [$this->idColumn => Uuid::fromHexToBytes($customerId)]);
         }
     }
 
@@ -58,7 +60,7 @@ class TwoFactorStore
     public function regenerateRecoveryCodes(string $customerId): array
     {
         $codes = $this->newRecoveryCodes();
-        $this->connection->update('nova_two_factor', ['recovery_codes' => json_encode($this->hashCodes($codes))], ['customer_id' => Uuid::fromHexToBytes($customerId)]);
+        $this->connection->update($this->table, ['recovery_codes' => json_encode($this->hashCodes($codes))], [$this->idColumn => Uuid::fromHexToBytes($customerId)]);
 
         return $codes;
     }
@@ -71,7 +73,7 @@ class TwoFactorStore
     public function check(string $customerId, string $input, int $maxAttempts, int $lockMinutes, ?int $now = null): string
     {
         $row = Uuid::isValid($customerId) ? $this->connection->fetchAssociative(
-            'SELECT `secret`, `recovery_codes`, `last_step`, `failed_attempts`, `locked_until` FROM `nova_two_factor` WHERE `customer_id` = :id',
+            'SELECT `secret`, `recovery_codes`, `last_step`, `failed_attempts`, `locked_until` FROM `' . $this->table . '` WHERE `' . $this->idColumn . '` = :id',
             ['id' => Uuid::fromHexToBytes($customerId)]
         ) : false;
         if ($row === false) {
@@ -87,7 +89,7 @@ class TwoFactorStore
         $secret = $this->cipher->decrypt((string) $row['secret']);
         $step = $secret !== null ? Totp::verify($secret, $input, $now, (int) $row['last_step']) : null;
         if ($step !== null) {
-            $this->connection->update('nova_two_factor', ['last_step' => $step, 'failed_attempts' => 0, 'locked_until' => null, 'last_used_at' => $this->now()], ['customer_id' => $id]);
+            $this->connection->update($this->table, ['last_step' => $step, 'failed_attempts' => 0, 'locked_until' => null, 'last_used_at' => $this->now()], [$this->idColumn => $id]);
 
             return 'ok';
         }
@@ -100,12 +102,12 @@ class TwoFactorStore
             foreach ($hashes as $index => $hash) {
                 if (password_verify($normalized, $hash)) {
                     unset($hashes[$index]);
-                    $this->connection->update('nova_two_factor', [
+                    $this->connection->update($this->table, [
                         'recovery_codes' => json_encode(array_values($hashes)),
                         'failed_attempts' => 0,
                         'locked_until' => null,
                         'last_used_at' => $this->now(),
-                    ], ['customer_id' => $id]);
+                    ], [$this->idColumn => $id]);
 
                     return 'recovery';
                 }
@@ -114,17 +116,17 @@ class TwoFactorStore
 
         $failed = (int) $row['failed_attempts'] + 1;
         $lock = $failed >= max(1, $maxAttempts);
-        $this->connection->update('nova_two_factor', [
+        $this->connection->update($this->table, [
             'failed_attempts' => $lock ? 0 : $failed,
             'locked_until' => $lock ? date('Y-m-d H:i:s.000', $now + max(1, $lockMinutes) * 60) : null,
-        ], ['customer_id' => $id]);
+        ], [$this->idColumn => $id]);
 
         return $lock ? 'locked' : 'invalid';
     }
 
     public function remainingRecoveryCodes(string $customerId): int
     {
-        $codes = Uuid::isValid($customerId) ? $this->connection->fetchOne('SELECT `recovery_codes` FROM `nova_two_factor` WHERE `customer_id` = :id', ['id' => Uuid::fromHexToBytes($customerId)]) : false;
+        $codes = Uuid::isValid($customerId) ? $this->connection->fetchOne('SELECT `recovery_codes` FROM `' . $this->table . '` WHERE `' . $this->idColumn . '` = :id', ['id' => Uuid::fromHexToBytes($customerId)]) : false;
         $codes = \is_string($codes) ? json_decode($codes, true) : null;
 
         return \is_array($codes) ? \count($codes) : 0;
@@ -136,7 +138,7 @@ class TwoFactorStore
     public function status(string $customerId): ?array
     {
         $row = Uuid::isValid($customerId) ? $this->connection->fetchAssociative(
-            'SELECT `enabled_at`, `last_used_at`, `recovery_codes` FROM `nova_two_factor` WHERE `customer_id` = :id',
+            'SELECT `enabled_at`, `last_used_at`, `recovery_codes` FROM `' . $this->table . '` WHERE `' . $this->idColumn . '` = :id',
             ['id' => Uuid::fromHexToBytes($customerId)]
         ) : false;
         if ($row === false) {

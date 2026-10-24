@@ -9,6 +9,33 @@
         "reset": "2FA zurücksetzen",
         "resetConfirm": "Die Zwei-Faktor-Anmeldung dieses Kunden wird entfernt (z. B. Handy verloren). Der Kunde meldet sich danach nur mit Passwort an und kann 2FA im Konto neu einrichten. Vorher die Identität prüfen!",
         "resetDone": "Zwei-Faktor-Anmeldung zurückgesetzt.",
-        "resetError": "Zurücksetzen fehlgeschlagen."
+        "resetError": "Zurücksetzen fehlgeschlagen.",
+        "userOff": "Dieser Benutzer hat keine Zwei-Faktor-Anmeldung eingerichtet.",
+        "resetConfirmUser": "Die Zwei-Faktor-Anmeldung dieses Benutzers wird entfernt (z. B. Handy verloren). Danach genügt wieder das Passwort; 2FA im Profil neu einrichten. Vorher die Identität prüfen!",
+        "login": {
+            "label": "Code aus der Authenticator-App",
+            "help": "6-stelliger Code – oder einer Ihrer Wiederherstellungscodes",
+            "invalid": "Der Code ist ungültig.",
+            "locked": "Zu viele Fehlversuche. Bitte später erneut versuchen."
+        },
+        "profile": {
+            "title": "Zwei-Faktor-Anmeldung",
+            "intro": "Zusätzlich zum Passwort fragt die Anmeldung nach einem Code aus Ihrer Authenticator-App (Google/Microsoft Authenticator, 1Password …). Dringend empfohlen für alle Benutzer.",
+            "start": "Jetzt einrichten",
+            "step1": "Authenticator-App öffnen und „Konto hinzufügen“ wählen.",
+            "step2": "QR-Code scannen.",
+            "step3": "Den angezeigten Code eingeben und bestätigen.",
+            "manual": "Kein Scan möglich? Schlüssel von Hand eingeben:",
+            "codeFromApp": "Code aus der App",
+            "confirm": "Bestätigen",
+            "currentCode": "Aktueller Code (für Änderungen)",
+            "regenerate": "Neue Wiederherstellungscodes",
+            "disable": "Abschalten",
+            "enabled": "Zwei-Faktor-Anmeldung eingerichtet.",
+            "disabled": "Zwei-Faktor-Anmeldung abgeschaltet.",
+            "recoveryTitle": "Ihre Wiederherstellungscodes",
+            "recoveryText": "Jeder Code funktioniert einmal, falls die App nicht verfügbar ist. Jetzt notieren – sie werden nicht wieder angezeigt.",
+            "error": "Aktion fehlgeschlagen."
+        }
     }
 }
