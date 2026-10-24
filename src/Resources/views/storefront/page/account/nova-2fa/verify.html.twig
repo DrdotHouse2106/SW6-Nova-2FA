@@ -1,0 +1,22 @@
+{% sw_extends '@Storefront/storefront/base.html.twig' %}
+
+{% block base_content %}
+    <div class="nova-2fa-verify">
+        <div class="card nova-2fa-card">
+            <div class="card-body">
+                <h1 class="h3">{{ 'novaTwoFactor.verify.title'|trans|sw_sanitize }}</h1>
+                <p>{{ 'novaTwoFactor.verify.text'|trans|sw_sanitize }}</p>
+
+                <form action="{{ path('frontend.nova_2fa.verify.check') }}" method="post">
+                    <input type="hidden" name="redirectTo" value="{{ redirectTo }}">
+                    <label class="form-label" for="nova-2fa-code">{{ 'novaTwoFactor.verify.label'|trans|sw_sanitize }}</label>
+                    <input type="text" id="nova-2fa-code" name="code" class="form-control nova-2fa-code-input" inputmode="numeric" autocomplete="one-time-code" placeholder="123456" required autofocus>
+                    <button class="btn btn-primary w-100 mt-3" type="submit">{{ 'novaTwoFactor.verify.submit'|trans|sw_sanitize }}</button>
+                </form>
+
+                <p class="nova-2fa-meta mt-3">{{ 'novaTwoFactor.verify.recoveryHint'|trans|sw_sanitize }}</p>
+                <a href="{{ path('frontend.account.logout.page') }}">{{ 'account.logout'|trans|sw_sanitize }}</a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

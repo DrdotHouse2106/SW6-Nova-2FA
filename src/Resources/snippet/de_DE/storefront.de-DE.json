@@ -1,0 +1,40 @@
+{
+    "novaTwoFactor": {
+        "title": "Zwei-Faktor-Anmeldung",
+        "intro": "Zusätzlich zum Passwort fragt der Shop nach einem 6-stelligen Code aus Ihrer Authenticator-App (z. B. Google Authenticator, Microsoft Authenticator, 1Password). Nach der Eingabe gilt die Anmeldung %hours% Stunden.",
+        "statusOn": "Zwei-Faktor-Anmeldung ist eingerichtet.",
+        "statusOff": "Zwei-Faktor-Anmeldung ist noch nicht eingerichtet.",
+        "codePlaceholder": "Aktueller Code aus der App",
+        "disable": "Abschalten",
+        "enabled": "Zwei-Faktor-Anmeldung ist eingerichtet. Bewahren Sie die Wiederherstellungscodes sicher auf.",
+        "disabled": "Zwei-Faktor-Anmeldung wurde abgeschaltet.",
+        "recoveryUsed": "Sie haben einen Wiederherstellungscode verwendet. Noch %count% übrig – bei Bedarf neue erzeugen.",
+        "setup": {
+            "start": "Jetzt einrichten",
+            "title": "Authenticator-App verbinden",
+            "step1": "Authenticator-App auf dem Handy öffnen und „Konto hinzufügen“ wählen.",
+            "step2": "Diesen QR-Code scannen.",
+            "step3": "Den angezeigten 6-stelligen Code eingeben und bestätigen.",
+            "manual": "QR-Code lässt sich nicht scannen? Diesen Schlüssel von Hand eingeben:",
+            "confirm": "Bestätigen",
+            "cancel": "Abbrechen"
+        },
+        "recovery": {
+            "title": "Ihre Wiederherstellungscodes",
+            "text": "Jeder Code funktioniert einmal, falls Sie keinen Zugriff auf Ihre App haben. Notieren oder drucken Sie sie jetzt – sie werden nur dieses eine Mal angezeigt.",
+            "remaining": "Noch %count% Wiederherstellungscodes verfügbar.",
+            "regenerate": "Neue Wiederherstellungscodes"
+        },
+        "verify": {
+            "title": "Bestätigung erforderlich",
+            "text": "Bitte geben Sie den aktuellen Code aus Ihrer Authenticator-App ein.",
+            "label": "6-stelliger Code",
+            "submit": "Bestätigen",
+            "recoveryHint": "Kein Zugriff auf die App? Geben Sie stattdessen einen Ihrer Wiederherstellungscodes ein."
+        },
+        "error": {
+            "invalidCode": "Der Code ist ungültig. Bitte den aktuellen Code aus der App eingeben.",
+            "locked": "Zu viele Fehlversuche. Bitte in %minutes% Minuten erneut versuchen."
+        }
+    }
+}

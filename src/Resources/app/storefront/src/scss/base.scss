@@ -1,0 +1,77 @@
+/* Nova 2FA – Kundenkonto und Code-Abfrage */
+.nova-2fa-card {
+    max-width: 40rem;
+    margin-bottom: 1.5rem;
+}
+
+.nova-2fa-status {
+    font-weight: 600;
+
+    &.is-on {
+        color: var(--bs-success, #198754);
+    }
+}
+
+.nova-2fa-meta {
+    color: var(--bs-secondary-color, #6c757d);
+    font-size: .875rem;
+}
+
+.nova-2fa-inline {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+    margin-top: .75rem;
+
+    .form-control {
+        flex: 1 1 12rem;
+        max-width: 16rem;
+    }
+}
+
+.nova-2fa-qr {
+    width: 220px;
+    max-width: 100%;
+    margin: 1rem 0;
+    background: #fff;
+
+    svg {
+        display: block;
+        width: 100%;
+        height: auto;
+    }
+}
+
+.nova-2fa-secret,
+.nova-2fa-codes code {
+    font-size: 1rem;
+    letter-spacing: .08em;
+}
+
+.nova-2fa-codes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 12rem));
+    gap: .5rem 1rem;
+    padding-left: 1.25rem;
+}
+
+.nova-2fa-recovery {
+    border-color: var(--bs-warning, #ffc107);
+}
+
+.nova-2fa-verify {
+    display: flex;
+    justify-content: center;
+    padding: 3rem 0;
+
+    .nova-2fa-card {
+        width: 100%;
+        max-width: 26rem;
+    }
+}
+
+.nova-2fa-code-input {
+    font-size: 1.5rem;
+    letter-spacing: .3em;
+    text-align: center;
+}

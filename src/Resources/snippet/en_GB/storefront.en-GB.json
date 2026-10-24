@@ -1,0 +1,40 @@
+{
+    "novaTwoFactor": {
+        "title": "Two-factor login",
+        "intro": "In addition to your password, the shop asks for a 6-digit code from your authenticator app (e.g. Google Authenticator, Microsoft Authenticator, 1Password). After entering it, the login is valid for %hours% hours.",
+        "statusOn": "Two-factor login is set up.",
+        "statusOff": "Two-factor login is not set up yet.",
+        "codePlaceholder": "Current code from the app",
+        "disable": "Turn off",
+        "enabled": "Two-factor login is set up. Keep the recovery codes in a safe place.",
+        "disabled": "Two-factor login has been turned off.",
+        "recoveryUsed": "You used a recovery code. %count% left – create new ones if needed.",
+        "setup": {
+            "start": "Set up now",
+            "title": "Connect your authenticator app",
+            "step1": "Open your authenticator app and choose \"Add account\".",
+            "step2": "Scan this QR code.",
+            "step3": "Enter the 6-digit code shown and confirm.",
+            "manual": "Cannot scan the QR code? Enter this key manually:",
+            "confirm": "Confirm",
+            "cancel": "Cancel"
+        },
+        "recovery": {
+            "title": "Your recovery codes",
+            "text": "Each code works once if you cannot access your app. Write them down or print them now – they are only shown this one time.",
+            "remaining": "%count% recovery codes left.",
+            "regenerate": "New recovery codes"
+        },
+        "verify": {
+            "title": "Confirmation required",
+            "text": "Please enter the current code from your authenticator app.",
+            "label": "6-digit code",
+            "submit": "Confirm",
+            "recoveryHint": "No access to the app? Enter one of your recovery codes instead."
+        },
+        "error": {
+            "invalidCode": "The code is invalid. Please enter the current code from the app.",
+            "locked": "Too many failed attempts. Please try again in %minutes% minutes."
+        }
+    }
+}

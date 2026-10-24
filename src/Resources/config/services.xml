@@ -1,0 +1,43 @@
+<?xml version="1.0" ?>
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+    <services>
+        <service id="Nova\TwoFactor\Service\SecretCipher">
+            <argument>%kernel.secret%</argument>
+        </service>
+
+        <service id="Nova\TwoFactor\Service\TwoFactorStore">
+            <argument type="service" id="Doctrine\DBAL\Connection"/>
+            <argument type="service" id="Nova\TwoFactor\Service\SecretCipher"/>
+        </service>
+
+        <!-- Öffentlich: andere Plugins (z. B. Nova Upload) fragen hier, ob die 2FA bestätigt ist -->
+        <service id="Nova\TwoFactor\Service\TwoFactorGuard" public="true">
+            <argument type="service" id="Nova\TwoFactor\Service\TwoFactorStore"/>
+            <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
+        </service>
+
+        <service id="Nova\TwoFactor\Subscriber\TwoFactorGateSubscriber">
+            <argument type="service" id="Nova\TwoFactor\Service\TwoFactorGuard"/>
+            <argument type="service" id="request_stack"/>
+            <argument type="service" id="router"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
+        <service id="Nova\TwoFactor\Controller\TwoFactorController" public="true">
+            <argument type="service" id="Shopware\Storefront\Page\GenericPageLoader"/>
+            <argument type="service" id="Nova\TwoFactor\Service\TwoFactorStore"/>
+            <argument type="service" id="Nova\TwoFactor\Service\TwoFactorGuard"/>
+            <argument type="service" id="Nova\TwoFactor\Service\SecretCipher"/>
+            <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
+            <call method="setContainer">
+                <argument type="service" id="service_container"/>
+            </call>
+        </service>
+
+        <service id="Nova\TwoFactor\Controller\AdminTwoFactorController" public="true">
+            <argument type="service" id="Nova\TwoFactor\Service\TwoFactorStore"/>
+        </service>
+    </services>
+</container>

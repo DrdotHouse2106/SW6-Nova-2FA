@@ -1,0 +1,87 @@
+{% sw_extends '@Storefront/storefront/page/account/_page.html.twig' %}
+
+{% block page_account_main_content %}
+    {% set tf = novaTwoFactor %}
+    <div class="account-nova-2fa">
+        {% block nova_2fa_headline %}
+            <h1 class="account-welcome">{{ 'novaTwoFactor.title'|trans|sw_sanitize }}</h1>
+            <p>{{ 'novaTwoFactor.intro'|trans({'%hours%': tf.ttlHours})|sw_sanitize }}</p>
+        {% endblock %}
+
+        {% if tf.recoveryCodes %}
+            {% block nova_2fa_recovery_codes %}
+                <div class="card nova-2fa-card nova-2fa-recovery">
+                    <div class="card-body">
+                        <h2 class="h5">{{ 'novaTwoFactor.recovery.title'|trans|sw_sanitize }}</h2>
+                        <p>{{ 'novaTwoFactor.recovery.text'|trans|sw_sanitize }}</p>
+                        <ul class="nova-2fa-codes">
+                            {% for code in tf.recoveryCodes %}
+                                <li><code>{{ code|slice(0, 5) }}-{{ code|slice(5) }}</code></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            {% endblock %}
+        {% endif %}
+
+        {% if tf.enabled %}
+            {% block nova_2fa_enabled %}
+                <div class="card nova-2fa-card">
+                    <div class="card-body">
+                        <p class="nova-2fa-status is-on">✓ {{ 'novaTwoFactor.statusOn'|trans|sw_sanitize }}</p>
+                        {% if tf.status %}
+                            <p class="nova-2fa-meta">{{ 'novaTwoFactor.recovery.remaining'|trans({'%count%': tf.status.recoveryCodes})|sw_sanitize }}</p>
+                        {% endif %}
+
+                        <form action="{{ path('frontend.nova_2fa.recovery') }}" method="post" class="nova-2fa-inline">
+                            <input type="text" name="code" class="form-control" inputmode="numeric" autocomplete="one-time-code" placeholder="{{ 'novaTwoFactor.codePlaceholder'|trans|striptags }}" required>
+                            <button class="btn btn-secondary" type="submit">{{ 'novaTwoFactor.recovery.regenerate'|trans|sw_sanitize }}</button>
+                        </form>
+
+                        <form action="{{ path('frontend.nova_2fa.disable') }}" method="post" class="nova-2fa-inline">
+                            <input type="text" name="code" class="form-control" inputmode="numeric" autocomplete="one-time-code" placeholder="{{ 'novaTwoFactor.codePlaceholder'|trans|striptags }}" required>
+                            <button class="btn btn-outline-danger" type="submit">{{ 'novaTwoFactor.disable'|trans|sw_sanitize }}</button>
+                        </form>
+                    </div>
+                </div>
+            {% endblock %}
+        {% elseif tf.setupSecret %}
+            {% block nova_2fa_setup %}
+                <div class="card nova-2fa-card">
+                    <div class="card-body">
+                        <h2 class="h5">{{ 'novaTwoFactor.setup.title'|trans|sw_sanitize }}</h2>
+                        <ol class="nova-2fa-steps">
+                            <li>{{ 'novaTwoFactor.setup.step1'|trans|sw_sanitize }}</li>
+                            <li>{{ 'novaTwoFactor.setup.step2'|trans|sw_sanitize }}</li>
+                            <li>{{ 'novaTwoFactor.setup.step3'|trans|sw_sanitize }}</li>
+                        </ol>
+
+                        <div class="nova-2fa-qr" data-nova-2fa-qr="{{ tf.setupUri|e('html_attr') }}" aria-label="QR-Code"></div>
+                        <p class="nova-2fa-meta">{{ 'novaTwoFactor.setup.manual'|trans|sw_sanitize }}<br>
+                            <code class="nova-2fa-secret">{{ tf.setupSecret|split('')|batch(4)|map(group => group|join(''))|join(' ') }}</code>
+                        </p>
+
+                        <form action="{{ path('frontend.nova_2fa.confirm') }}" method="post" class="nova-2fa-inline">
+                            <input type="text" name="code" class="form-control" inputmode="numeric" pattern="[0-9 ]{6,7}" autocomplete="one-time-code" placeholder="123456" required autofocus>
+                            <button class="btn btn-primary" type="submit">{{ 'novaTwoFactor.setup.confirm'|trans|sw_sanitize }}</button>
+                        </form>
+                        <form action="{{ path('frontend.nova_2fa.cancel') }}" method="post">
+                            <button class="btn btn-link px-0" type="submit">{{ 'novaTwoFactor.setup.cancel'|trans|sw_sanitize }}</button>
+                        </form>
+                    </div>
+                </div>
+            {% endblock %}
+        {% else %}
+            {% block nova_2fa_disabled %}
+                <div class="card nova-2fa-card">
+                    <div class="card-body">
+                        <p class="nova-2fa-status">{{ 'novaTwoFactor.statusOff'|trans|sw_sanitize }}</p>
+                        <form action="{{ path('frontend.nova_2fa.setup') }}" method="post">
+                            <button class="btn btn-primary" type="submit">{{ 'novaTwoFactor.setup.start'|trans|sw_sanitize }}</button>
+                        </form>
+                    </div>
+                </div>
+            {% endblock %}
+        {% endif %}
+    </div>
+{% endblock %}

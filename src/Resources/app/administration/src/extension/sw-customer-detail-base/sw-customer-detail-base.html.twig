@@ -1,0 +1,5 @@
+{% block sw_customer_detail_base_info_holder %}
+    {% parent %}
+
+    <nova-two-factor-card v-if="customer && customer.id && !customer.guest" :customer-id="customer.id" />
+{% endblock %}

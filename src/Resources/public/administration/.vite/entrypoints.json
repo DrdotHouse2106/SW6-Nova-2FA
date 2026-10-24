@@ -1,0 +1,23 @@
+{
+  "base": "/bundles/novatwofactor/administration/",
+  "entryPoints": {
+    "nova-two-factor": {
+      "css": [],
+      "dynamic": [],
+      "js": [
+        "/bundles/novatwofactor/administration/assets/nova-two-factor-BJkK-5xY.js"
+      ],
+      "legacy": false,
+      "preload": []
+    }
+  },
+  "legacy": false,
+  "metadatas": {},
+  "version": [
+    "7.1.0",
+    7,
+    1,
+    0
+  ],
+  "viteServer": null
+}

@@ -1,0 +1,33 @@
+{
+    "name": "nova/nova-two-factor",
+    "description": "Zwei-Faktor-Anmeldung per Authenticator-App (TOTP) für Kundenkonten in Shopware 6",
+    "type": "shopware-platform-plugin",
+    "version": "1.0.0",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Nova"
+        }
+    ],
+    "require": {
+        "shopware/core": "~6.6.0 || ~6.7.0",
+        "shopware/storefront": "~6.6.0 || ~6.7.0",
+        "ext-openssl": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Nova\\TwoFactor\\": "src/"
+        }
+    },
+    "extra": {
+        "shopware-plugin-class": "Nova\\TwoFactor\\NovaTwoFactor",
+        "label": {
+            "de-DE": "Nova 2FA",
+            "en-GB": "Nova 2FA"
+        },
+        "description": {
+            "de-DE": "Zwei-Faktor-Anmeldung per Authenticator-App für Kundenkonten: QR-Code einrichten, Code nach dem Passwort, Wiederherstellungscodes, Sperre nach Fehlversuchen. Schützt z. B. den Download-Bereich von Nova Upload.",
+            "en-GB": "Two-factor login with an authenticator app for customer accounts: QR setup, code after the password, recovery codes, lockout after failed attempts. Protects e.g. the Nova Upload download area."
+        }
+    }
+}

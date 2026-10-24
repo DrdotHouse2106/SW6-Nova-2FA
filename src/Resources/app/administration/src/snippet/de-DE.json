@@ -1,0 +1,14 @@
+{
+    "nova-two-factor": {
+        "title": "Zwei-Faktor-Anmeldung (Nova 2FA)",
+        "on": "Eingerichtet",
+        "off": "Nicht eingerichtet.",
+        "since": "Seit",
+        "lastUsed": "Zuletzt verwendet",
+        "recoveryCodes": "Wiederherstellungscodes",
+        "reset": "2FA zurücksetzen",
+        "resetConfirm": "Die Zwei-Faktor-Anmeldung dieses Kunden wird entfernt (z. B. Handy verloren). Der Kunde meldet sich danach nur mit Passwort an und kann 2FA im Konto neu einrichten. Vorher die Identität prüfen!",
+        "resetDone": "Zwei-Faktor-Anmeldung zurückgesetzt.",
+        "resetError": "Zurücksetzen fehlgeschlagen."
+    }
+}

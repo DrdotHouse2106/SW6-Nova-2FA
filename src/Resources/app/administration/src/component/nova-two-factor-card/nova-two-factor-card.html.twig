@@ -1,0 +1,38 @@
+{% block nova_two_factor_card %}
+<mt-card
+    class="nova-two-factor-card"
+    position-identifier="nova-two-factor-card"
+    :title="$tc('nova-two-factor.title')"
+    :is-loading="isLoading"
+>
+    <p v-if="enabled">
+        <strong>{{ $tc('nova-two-factor.on') }}</strong><br>
+        {{ $tc('nova-two-factor.since') }}: {{ date(status && status.enabledAt) }} ·
+        {{ $tc('nova-two-factor.lastUsed') }}: {{ date(status && status.lastUsedAt) }} ·
+        {{ $tc('nova-two-factor.recoveryCodes') }}: {{ status ? status.recoveryCodes : 0 }}
+    </p>
+    <p v-else>{{ $tc('nova-two-factor.off') }}</p>
+
+    <mt-button
+        v-if="enabled && acl.can('customer.editor')"
+        size="small"
+        variant="critical"
+        @click="showConfirm = true"
+    >
+        {{ $tc('nova-two-factor.reset') }}
+    </mt-button>
+
+    <sw-modal
+        v-if="showConfirm"
+        :title="$tc('nova-two-factor.reset')"
+        variant="small"
+        @modal-close="showConfirm = false"
+    >
+        <p>{{ $tc('nova-two-factor.resetConfirm') }}</p>
+        <template #modal-footer>
+            <mt-button size="small" variant="secondary" @click="showConfirm = false">{{ $tc('global.default.cancel') }}</mt-button>
+            <mt-button size="small" variant="critical" @click="reset">{{ $tc('nova-two-factor.reset') }}</mt-button>
+        </template>
+    </sw-modal>
+</mt-card>
+{% endblock %}

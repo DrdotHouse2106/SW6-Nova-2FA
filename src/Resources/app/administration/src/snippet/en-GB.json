@@ -1,0 +1,14 @@
+{
+    "nova-two-factor": {
+        "title": "Two-factor login (Nova 2FA)",
+        "on": "Set up",
+        "off": "Not set up.",
+        "since": "Since",
+        "lastUsed": "Last used",
+        "recoveryCodes": "Recovery codes",
+        "reset": "Reset 2FA",
+        "resetConfirm": "The customer's two-factor login will be removed (e.g. lost phone). Verify the customer's identity first!",
+        "resetDone": "Two-factor login reset.",
+        "resetError": "Reset failed."
+    }
+}

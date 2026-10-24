@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/shopware/shopware/trunk/src/Core/System/SystemConfig/Schema/config.xsd">
+
+    <card>
+        <title>Two-factor login</title>
+        <title lang="de-DE">Zwei-Faktor-Anmeldung</title>
+
+        <input-field type="int">
+            <name>ttlHours</name>
+            <label>Code valid for (hours)</label>
+            <label lang="de-DE">Bestätigter Code gilt für (Stunden)</label>
+            <helpText lang="de-DE">So lange ist nach der Code-Eingabe in derselben Sitzung kein neuer Code nötig.</helpText>
+            <helpText>No new code is needed in the same session during this time.</helpText>
+            <defaultValue>12</defaultValue>
+        </input-field>
+
+        <input-field type="int">
+            <name>maxAttempts</name>
+            <label>Failed attempts before lockout</label>
+            <label lang="de-DE">Fehlversuche bis zur Sperre</label>
+            <defaultValue>5</defaultValue>
+        </input-field>
+
+        <input-field type="int">
+            <name>lockMinutes</name>
+            <label>Lockout (minutes)</label>
+            <label lang="de-DE">Sperre (Minuten)</label>
+            <defaultValue>15</defaultValue>
+        </input-field>
+
+        <input-field type="text">
+            <name>issuer</name>
+            <label>Name in the authenticator app</label>
+            <label lang="de-DE">Name in der Authenticator-App</label>
+            <helpText lang="de-DE">Leer = Name des Verkaufskanals.</helpText>
+            <helpText>Empty = sales channel name.</helpText>
+        </input-field>
+    </card>
+</config>
