@@ -1,3 +1,7 @@
+# 1.2.1
+- **Fehler behoben: Anmeldung in der Administration mit 2FA war nicht möglich.** Shopware lädt Plugin-Erweiterungen erst nach der Anmeldung, das Code-Feld erschien daher nie. Jetzt: ins Passwortfeld das Passwort und direkt dahinter den 6-stelligen Code eingeben („MeinPasswort123456“, Leerzeichen erlaubt; Wiederherstellungscode: „MeinPasswort ABCDE-12345“)
+- Hinweis zur Anmeldung im Profil und im Einrichtungsfenster
+
 # 1.2.0
 - Neu: **Pflicht für die Administration** (Schalter „Zwei-Faktor-Anmeldung für die Administration verpflichtend“): Benutzer ohne 2FA müssen sie nach der Anmeldung einrichten und können vorher nichts ändern; Integrationen (API-Zugänge) dürfen dann keine Benutzer, Rollen oder Zugänge anlegen
 - Neu: Benutzer, Rollen, Integrationen und Zugangsschlüssel anlegen, ändern oder löschen nur mit frisch bestätigtem App-Code (Bestätigungsfenster, danach 5 Minuten gültig)

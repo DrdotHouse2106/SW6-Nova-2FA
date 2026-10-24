@@ -20,7 +20,7 @@
         },
         "profile": {
             "title": "Two-factor login",
-            "intro": "In addition to your password, the login asks for a code from your authenticator app. Strongly recommended for all users.",
+            "intro": "At login, enter your password followed directly by the 6-digit code from your authenticator app in the password field, e.g. \"MyPassword123456\" (a space in between also works).",
             "start": "Set up now",
             "step1": "Open your authenticator app and choose \"Add account\".",
             "step2": "Scan the QR code.",
@@ -39,7 +39,8 @@
             "print": "Print / save as PDF",
             "printTitle": "Recovery codes – two-factor login",
             "printNote": "Each code works exactly once if the authenticator app is not available. Keep them safe – not next to your phone.",
-            "printBlocked": "The print window was blocked. Please allow pop-ups for the administration."
+            "printBlocked": "The print window was blocked. Please allow pop-ups for the administration.",
+            "loginHint": "Login with 2FA: enter your password followed by the 6-digit code."
         },
         "confirm": {
             "title": "Confirm with 2FA",

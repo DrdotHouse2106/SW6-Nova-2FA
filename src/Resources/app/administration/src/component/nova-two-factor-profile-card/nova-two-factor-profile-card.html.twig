@@ -17,6 +17,7 @@
     </div>
 
     <template v-if="enabled">
+        <mt-banner variant="info" class="nova-two-factor__hint">{{ $tc('nova-two-factor.profile.loginHint') }}</mt-banner>
         <p><strong>✓ {{ $tc('nova-two-factor.on') }}</strong> · {{ $tc('nova-two-factor.since') }} {{ date(status && status.enabledAt) }} · {{ $tc('nova-two-factor.recoveryCodes') }}: {{ status ? status.recoveryCodes : 0 }}</p>
         <div class="nova-two-factor__row">
             <mt-text-field v-model="code" :label="$tc('nova-two-factor.profile.currentCode')" autocomplete="one-time-code" inputmode="numeric" />

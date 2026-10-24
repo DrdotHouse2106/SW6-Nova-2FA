@@ -1,3 +1,6 @@
+# 1.2.1
+- Fixed: administration login with 2FA was impossible because Shopware loads plugin extensions only after login. Now enter password followed by the 6-digit code in the password field.
+
 # 1.2.0
 - New: two-factor login can be made mandatory for the administration (users must set it up first; integrations cannot create users, roles or access keys)
 - New: creating/changing/deleting users, roles, integrations and access keys requires a fresh code (confirmation dialog, valid 5 minutes)

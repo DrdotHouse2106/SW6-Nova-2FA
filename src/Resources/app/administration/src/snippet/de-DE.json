@@ -20,7 +20,7 @@
         },
         "profile": {
             "title": "Zwei-Faktor-Anmeldung",
-            "intro": "Zusätzlich zum Passwort fragt die Anmeldung nach einem Code aus Ihrer Authenticator-App (Google/Microsoft Authenticator, 1Password …). Dringend empfohlen für alle Benutzer.",
+            "intro": "Zusätzlich zum Passwort wird bei der Anmeldung ein Code aus Ihrer Authenticator-App (Google/Microsoft Authenticator, 1Password …) abgefragt. So melden Sie sich an: ins Passwortfeld Ihr Passwort und direkt dahinter den 6-stelligen Code eingeben, z. B. „MeinPasswort123456“ (Leerzeichen dazwischen geht auch).",
             "start": "Jetzt einrichten",
             "step1": "Authenticator-App öffnen und „Konto hinzufügen“ wählen.",
             "step2": "QR-Code scannen.",
@@ -39,7 +39,8 @@
             "print": "Drucken / als PDF speichern",
             "printTitle": "Wiederherstellungscodes – Zwei-Faktor-Anmeldung",
             "printNote": "Jeder Code funktioniert genau einmal, falls die Authenticator-App nicht verfügbar ist. Sicher aufbewahren, z. B. im Tresor oder Passwort-Manager – nicht neben dem Handy.",
-            "printBlocked": "Das Druckfenster wurde blockiert. Bitte Pop-ups für die Administration erlauben."
+            "printBlocked": "Das Druckfenster wurde blockiert. Bitte Pop-ups für die Administration erlauben.",
+            "loginHint": "Anmeldung mit 2FA: Passwort und direkt dahinter den 6-stelligen Code eingeben."
         },
         "confirm": {
             "title": "Mit 2FA bestätigen",
@@ -50,7 +51,7 @@
         },
         "enforce": {
             "title": "Zwei-Faktor-Anmeldung einrichten",
-            "text": "Für diese Administration ist die Zwei-Faktor-Anmeldung Pflicht. Bitte jetzt einrichten – vorher sind keine Änderungen möglich."
+            "text": "Für diese Administration ist die Zwei-Faktor-Anmeldung Pflicht. Bitte jetzt einrichten – vorher sind keine Änderungen möglich. Danach melden Sie sich mit Passwort und direkt dahinter dem 6-stelligen Code an."
         }
     }
 }
