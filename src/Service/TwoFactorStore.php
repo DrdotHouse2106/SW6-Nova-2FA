@@ -28,18 +28,21 @@ class TwoFactorStore
     }
 
     /**
+     * @param int $lastStep Zeitfenster des Bestätigungscodes – derselbe Code gilt danach nicht noch einmal
+     *
      * @return list<string> Wiederherstellungscodes im Klartext – nur jetzt einmal anzeigen
      */
-    public function enable(string $customerId, string $secret): array
+    public function enable(string $customerId, string $secret, int $lastStep = 0): array
     {
         $codes = $this->newRecoveryCodes();
         $this->connection->executeStatement(
             'REPLACE INTO `' . $this->table . '` (`' . $this->idColumn . '`, `secret`, `recovery_codes`, `last_step`, `failed_attempts`, `locked_until`, `enabled_at`)
-             VALUES (:id, :secret, :codes, 0, 0, NULL, :now)',
+             VALUES (:id, :secret, :codes, :step, 0, NULL, :now)',
             [
                 'id' => Uuid::fromHexToBytes($customerId),
                 'secret' => $this->cipher->encrypt($secret),
                 'codes' => json_encode($this->hashCodes($codes)),
+                'step' => max(0, $lastStep),
                 'now' => $this->now(),
             ]
         );
@@ -72,20 +75,32 @@ class TwoFactorStore
      */
     public function check(string $customerId, string $input, int $maxAttempts, int $lockMinutes, ?int $now = null): string
     {
-        $row = Uuid::isValid($customerId) ? $this->connection->fetchAssociative(
-            'SELECT `secret`, `recovery_codes`, `last_step`, `failed_attempts`, `locked_until` FROM `' . $this->table . '` WHERE `' . $this->idColumn . '` = :id',
-            ['id' => Uuid::fromHexToBytes($customerId)]
-        ) : false;
+        if (!Uuid::isValid($customerId)) {
+            return 'missing';
+        }
+
+        // Zeile sperren: parallele Anfragen werden nacheinander geprüft (Fehlversuche und Wiederverwendung zählen sicher)
+        return $this->connection->transactional(fn (): string => $this->checkLocked($customerId, $input, $maxAttempts, $lockMinutes, $now ?? time()));
+    }
+
+    /**
+     * @return 'ok'|'recovery'|'invalid'|'locked'|'missing'
+     */
+    private function checkLocked(string $customerId, string $input, int $maxAttempts, int $lockMinutes, int $now): string
+    {
+        $id = Uuid::fromHexToBytes($customerId);
+        $row = $this->connection->fetchAssociative(
+            'SELECT `secret`, `recovery_codes`, `last_step`, `failed_attempts`, `locked_until` FROM `' . $this->table . '` WHERE `' . $this->idColumn . '` = :id FOR UPDATE',
+            ['id' => $id]
+        );
         if ($row === false) {
             return 'missing';
         }
 
-        $now ??= time();
         if ($row['locked_until'] !== null && strtotime((string) $row['locked_until']) > $now) {
             return 'locked';
         }
 
-        $id = Uuid::fromHexToBytes($customerId);
         $secret = $this->cipher->decrypt((string) $row['secret']);
         $step = $secret !== null ? Totp::verify($secret, $input, $now, (int) $row['last_step']) : null;
         if ($step !== null) {

@@ -30,6 +30,9 @@ class AdminGuardSubscriber implements EventSubscriberInterface
     /** Entitäten, über die man sich Zugang zur Administration oder API verschafft */
     public const PROTECTED_ENTITIES = ['user', 'acl_role', 'integration', 'user_access_key', 'acl_user_role', 'integration_role'];
 
+    /** Eigene Aktionen, die wie Zugangs-Änderungen behandelt werden */
+    public const PROTECTED_ROUTES = ['api.action.nova_2fa.user.reset', 'api.action.nova_2fa.customer.reset'];
+
     /** Erlaubt ohne eingerichtete 2FA (Pflicht-Modus): Einrichtung, Anmeldung, Profil */
     private const SETUP_ROUTE_PREFIXES = ['api.action.nova_2fa.me', 'api.oauth.', 'api.info.me', 'api.user.logout', 'api.action.user.logout'];
 
@@ -56,40 +59,90 @@ class AdminGuardSubscriber implements EventSubscriberInterface
 
         $source = $context->getSource();
         $route = (string) $request->attributes->get('_route');
+        $userId = $source->getUserId();
+
+        if ($this->isProtectedWrite($request, $route)) {
+            $denial = $this->authorizeAccessWrite($request, $source);
+            if ($denial !== null) {
+                $this->deny($event, $denial[0], $denial[1]);
+            }
+
+            return;
+        }
+
+        // Code für verschachtelte Zugangs-Änderungen (AccessWriteGuardSubscriber) schon hier prüfen:
+        // außerhalb der Schreib-Transaktion, damit Fehlversuche nicht mit zurückgerollt werden
+        if ($userId !== null
+            && self::isEntityWriteRoute($route)
+            && trim((string) $request->headers->get(self::HEADER, '')) !== ''
+            && !AdminLoginSubscriber::isApiUser($this->config, $userId)
+            && $this->userStore->isEnabled($userId)
+            && !$this->isConfirmed($userId)) {
+            $denial = $this->confirmWithCode($request, $userId);
+            if ($denial !== null) {
+                $this->deny($event, $denial[0], $denial[1]);
+
+                return;
+            }
+        }
+
+        // Pflicht-Modus: Benutzer ohne 2FA dürfen bis zur Einrichtung nichts ändern
+        if ($userId !== null
+            && !AdminLoginSubscriber::isApiUser($this->config, $userId)
+            && $this->config->getBool('NovaTwoFactor.config.adminRequired')
+            && $this->isWrite($request, $route)
+            && !$this->isSetupRoute($route)
+            && !$this->userStore->isEnabled($userId)) {
+            $this->deny($event, 'NOVA_2FA_SETUP_REQUIRED', 'Bitte zuerst die Zwei-Faktor-Anmeldung im Profil einrichten.');
+        }
+    }
+
+    /**
+     * Darf diese Anmeldung Zugänge (Benutzer, Rollen, Integrationen …) ändern? Prüft bei Bedarf den Code aus der
+     * Kopfzeile ($checkCode) und merkt sich die Bestätigung 5 Minuten. Auch für Schreibvorgänge am DAL
+     * (AccessWriteGuardSubscriber, dort ohne Codeprüfung – die passiert vorher in onController).
+     *
+     * @return array{0: string, 1: string}|null Ablehnung (Fehlercode, Text) oder null = erlaubt
+     */
+    public function authorizeAccessWrite(Request $request, AdminApiSource $source, bool $checkCode = true): ?array
+    {
         $required = $this->config->getBool('NovaTwoFactor.config.adminRequired');
-        $protectedWrite = $this->isProtectedWrite($request, $route);
         $userId = $source->getUserId();
 
         // Integration (API-Zugang ohne Benutzer) oder Schnittstellen-Benutzer: wie eine Integration behandeln
         if ($userId === null || AdminLoginSubscriber::isApiUser($this->config, $userId)) {
-            if (($required || $userId !== null) && $protectedWrite) {
-                $this->deny($event, 'NOVA_2FA_INTEGRATION_DENIED', $userId !== null
-                    ? 'Schnittstellen-Benutzer dürfen keine Benutzer, Rollen, API-Zugänge oder die Zwei-Faktor-Einstellungen ändern.'
-                    : 'Integrationen dürfen keine Benutzer, Rollen oder API-Zugänge anlegen oder ändern, solange die Zwei-Faktor-Anmeldung für die Administration verpflichtend ist.');
+            if (!$required && $userId === null) {
+                return null;
             }
 
-            return;
+            return ['NOVA_2FA_INTEGRATION_DENIED', $userId !== null
+                ? 'Schnittstellen-Benutzer dürfen keine Benutzer, Rollen, API-Zugänge oder die Zwei-Faktor-Einstellungen ändern.'
+                : 'Integrationen dürfen keine Benutzer, Rollen oder API-Zugänge anlegen oder ändern, solange die Zwei-Faktor-Anmeldung für die Administration verpflichtend ist.'];
         }
 
-        $enabled = $this->userStore->isEnabled($userId);
-
-        if (!$enabled) {
-            if ($required && ($protectedWrite || $this->isWrite($request, $route)) && !$this->isSetupRoute($route)) {
-                $this->deny($event, 'NOVA_2FA_SETUP_REQUIRED', 'Bitte zuerst die Zwei-Faktor-Anmeldung im Profil einrichten.');
-            }
-
-            return;
+        if (!$this->userStore->isEnabled($userId)) {
+            return $required ? ['NOVA_2FA_SETUP_REQUIRED', 'Bitte zuerst die Zwei-Faktor-Anmeldung im Profil einrichten.'] : null;
         }
 
-        if (!$protectedWrite || $this->isConfirmed($userId)) {
-            return;
+        if ($this->isConfirmed($userId)) {
+            return null;
         }
 
+        return $checkCode
+            ? $this->confirmWithCode($request, $userId)
+            : ['NOVA_2FA_CONFIRM_REQUIRED', 'Bitte mit dem Code aus der Authenticator-App bestätigen.'];
+    }
+
+    /**
+     * Code aus der Kopfzeile prüfen und die Bestätigung 5 Minuten merken
+     *
+     * @return array{0: string, 1: string}|null
+     */
+    private function confirmWithCode(Request $request, string $userId): ?array
+    {
         $code = trim((string) $request->headers->get(self::HEADER, ''));
         if ($code === '') {
-            $this->deny($event, 'NOVA_2FA_CONFIRM_REQUIRED', 'Bitte mit dem Code aus der Authenticator-App bestätigen.');
-
-            return;
+            return ['NOVA_2FA_CONFIRM_REQUIRED', 'Bitte mit dem Code aus der Authenticator-App bestätigen.'];
         }
 
         $result = $this->userStore->check(
@@ -105,16 +158,21 @@ class AdminGuardSubscriber implements EventSubscriberInterface
             $item->expiresAfter(self::CONFIRM_TTL);
             $this->cache->save($item);
 
-            return;
+            return null;
         }
 
-        $this->deny($event, $result === 'locked' ? 'NOVA_2FA_LOCKED' : 'NOVA_2FA_CONFIRM_INVALID', $result === 'locked'
-            ? 'Zu viele Fehlversuche. Bitte später erneut versuchen.'
-            : 'Der Code ist ungültig.');
+        return $result === 'locked'
+            ? ['NOVA_2FA_LOCKED', 'Zu viele Fehlversuche. Bitte später erneut versuchen.']
+            : ['NOVA_2FA_CONFIRM_INVALID', 'Der Code ist ungültig.'];
     }
 
     public function isProtectedWrite(Request $request, string $route): bool
     {
+        // 2FA anderer Benutzer bzw. von Kunden zurücksetzen
+        if (\in_array($route, self::PROTECTED_ROUTES, true)) {
+            return true;
+        }
+
         if (preg_match('/^api\.([a-z_]+)\.(create|update|delete)$/', $route, $match)) {
             return \in_array($match[1], self::PROTECTED_ENTITIES, true);
         }
@@ -137,11 +195,17 @@ class AdminGuardSubscriber implements EventSubscriberInterface
         return false;
     }
 
+    /** Allgemeine Entity-Routen (auch verschachtelt), Sync und Klonen */
+    public static function isEntityWriteRoute(string $route): bool
+    {
+        return (bool) preg_match('/^api\.[a-z_]+\.(create|update|delete)$/', $route)
+            || \in_array($route, ['api.action.sync', 'api.clone'], true);
+    }
+
     /** Schreibender Zugriff, der ohne 2FA im Pflicht-Modus gesperrt wird (Lesen und Suchen bleiben möglich) */
     public function isWrite(Request $request, string $route): bool
     {
-        return (bool) preg_match('/^api\.[a-z_]+\.(create|update|delete)$/', $route)
-            || \in_array($route, ['api.action.sync', 'api.clone'], true)
+        return self::isEntityWriteRoute($route)
             || str_starts_with($route, 'api.extension.')
             || str_starts_with($route, 'api.action.plugin')
             || str_starts_with($route, 'api.action.dh_github_updater.');

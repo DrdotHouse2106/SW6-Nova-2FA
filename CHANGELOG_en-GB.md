@@ -1,3 +1,13 @@
+# 1.4.0
+- Security: before the code is entered, the storefront no longer returns account content via XHR requests (orders, addresses, wishlist, checkout). Only small widgets such as the cart counter, off-canvas cart and menu, search suggestions and cookie settings remain available. Nothing changes after the code and for accounts without 2FA
+- Security: "Reset 2FA" for other users and for customers now requires your own app code (like creating access) and is logged. Your own 2FA can only be disabled in the profile with a valid code. Interface users cannot reset anything
+- Security: Shopware's login rate limit now also applies when the plugin answers the admin login itself (code missing or wrong), so passwords of 2FA accounts can no longer be guessed without limit
+- Security: failed attempts are counted reliably even for parallel requests (lockout can no longer be bypassed)
+- Security: users, roles, integrations and the 2FA settings now also require a code when written through nested API writes (e.g. sync) or as a system config record
+- Security: Store API (e.g. app): for accounts with 2FA, e-mail, password and profile can no longer be changed there – only in the shop's customer account
+- The confirmation code used during setup cannot be reused afterwards
+- Docs: changing the app secret (`APP_SECRET`) makes all stored 2FA secrets unreadable
+
 # 1.3.0
 - New: interface users without two-factor login (for ERP systems logging in with username and password); they can never change users, roles, access keys or the 2FA settings
 - Changing the 2FA settings now requires a fresh code

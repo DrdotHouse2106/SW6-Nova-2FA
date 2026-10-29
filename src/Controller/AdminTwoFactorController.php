@@ -6,6 +6,7 @@ use Nova\TwoFactor\Service\SecretCipher;
 use Nova\TwoFactor\Service\Totp;
 use Nova\TwoFactor\Service\TwoFactorStore;
 use Psr\Cache\CacheItemPoolInterface;
+use Psr\Log\LoggerInterface;
 use Shopware\Core\Framework\Api\Context\AdminApiSource;
 use Shopware\Core\Framework\Context;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
@@ -22,6 +23,8 @@ class AdminTwoFactorController
 {
     private const PENDING_TTL = 900;
 
+    private ?LoggerInterface $logger = null;
+
     public function __construct(
         private readonly TwoFactorStore $store,
         private readonly TwoFactorStore $userStore,
@@ -29,6 +32,11 @@ class AdminTwoFactorController
         private readonly CacheItemPoolInterface $cache,
         private readonly SystemConfigService $config,
     ) {
+    }
+
+    public function setLogger(?LoggerInterface $logger): void
+    {
+        $this->logger = $logger;
     }
 
     // ---- Eigenes Profil ----
@@ -76,13 +84,14 @@ class AdminTwoFactorController
 
         $item = $this->cache->getItem($this->pendingKey($userId));
         $secret = $item->isHit() && \is_string($item->get()) ? $this->cipher->decrypt($item->get()) : null;
-        if ($secret === null || Totp::verify($secret, $request->request->getString('code')) === null) {
+        $step = $secret !== null ? Totp::verify($secret, $request->request->getString('code')) : null;
+        if ($secret === null || $step === null) {
             return new JsonResponse(['message' => 'Der Code ist ungültig.'], 400);
         }
 
         $this->cache->deleteItem($this->pendingKey($userId));
 
-        return new JsonResponse(['recoveryCodes' => $this->userStore->enable($userId, $secret)]);
+        return new JsonResponse(['recoveryCodes' => $this->userStore->enable($userId, $secret, $step)]);
     }
 
     #[Route(path: '/api/_action/nova-2fa/me/disable', name: 'api.action.nova_2fa.me.disable', methods: ['POST'])]
@@ -128,12 +137,18 @@ class AdminTwoFactorController
     }
 
     #[Route(path: '/api/_action/nova-2fa/user/{id}', name: 'api.action.nova_2fa.user.reset', methods: ['DELETE'])]
-    public function userReset(string $id, Context $context): JsonResponse
+    public function userReset(string $id, Request $request, Context $context): JsonResponse
     {
         if (!$this->allowed($context, 'user:update')) {
             return $this->denied();
         }
+        $actor = (string) $this->userId($context);
+        if ($id === $actor) {
+            // Die eigene 2FA nur im Profil mit gültigem Code abschalten
+            return new JsonResponse(['message' => 'Die eigene Zwei-Faktor-Anmeldung lässt sich nur im Profil mit einem gültigen Code abschalten.'], 400);
+        }
         $this->userStore->disable($id);
+        $this->logger?->warning('Nova 2FA: Zwei-Faktor-Anmeldung eines Admin-Benutzers zurückgesetzt', ['userId' => $id, 'byUserId' => $actor, 'ip' => $request->getClientIp()]);
 
         return new JsonResponse(['enabled' => false]);
     }
@@ -151,12 +166,13 @@ class AdminTwoFactorController
     }
 
     #[Route(path: '/api/_action/nova-2fa/customer/{id}', name: 'api.action.nova_2fa.customer.reset', methods: ['DELETE'])]
-    public function customerReset(string $id, Context $context): JsonResponse
+    public function customerReset(string $id, Request $request, Context $context): JsonResponse
     {
         if (!$this->allowed($context, 'customer:update')) {
             return $this->denied();
         }
         $this->store->disable($id);
+        $this->logger?->warning('Nova 2FA: Zwei-Faktor-Anmeldung eines Kunden zurückgesetzt', ['customerId' => $id, 'byUserId' => $this->userId($context), 'ip' => $request->getClientIp()]);
 
         return new JsonResponse(['enabled' => false]);
     }

@@ -24,6 +24,9 @@
             <argument type="service" id="nova_two_factor.user_store"/>
             <argument type="service" id="Doctrine\DBAL\Connection"/>
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
+            <call method="setRateLimiter">
+                <argument type="service" id="shopware.rate_limiter" on-invalid="null"/>
+            </call>
             <tag name="kernel.event_subscriber"/>
         </service>
 
@@ -31,6 +34,13 @@
             <argument type="service" id="nova_two_factor.user_store"/>
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
             <argument type="service" id="cache.object"/>
+            <tag name="kernel.event_subscriber"/>
+        </service>
+
+        <service id="Nova\TwoFactor\Subscriber\AccessWriteGuardSubscriber">
+            <argument type="service" id="Nova\TwoFactor\Subscriber\AdminGuardSubscriber"/>
+            <argument type="service" id="request_stack"/>
+            <argument type="service" id="Doctrine\DBAL\Connection"/>
             <tag name="kernel.event_subscriber"/>
         </service>
 
@@ -70,6 +80,9 @@
             <argument type="service" id="Nova\TwoFactor\Service\SecretCipher"/>
             <argument type="service" id="cache.object"/>
             <argument type="service" id="Shopware\Core\System\SystemConfig\SystemConfigService"/>
+            <call method="setLogger">
+                <argument type="service" id="logger" on-invalid="null"/>
+            </call>
         </service>
     </services>
 </container>

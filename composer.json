@@ -2,7 +2,7 @@
     "name": "nova/nova-two-factor",
     "description": "Zwei-Faktor-Anmeldung per Authenticator-App (TOTP) für die Administration und für Kundenkonten in Shopware 6",
     "type": "shopware-platform-plugin",
-    "version": "1.3.0",
+    "version": "1.4.0",
     "license": "MIT",
     "authors": [
         {
@@ -14,9 +14,17 @@
         "shopware/storefront": "~6.6.0 || ~6.7.0",
         "ext-openssl": "*"
     },
+    "require-dev": {
+        "phpunit/phpunit": "^10.5 || ^11.0"
+    },
     "autoload": {
         "psr-4": {
             "Nova\\TwoFactor\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Nova\\TwoFactor\\Tests\\": "tests/"
         }
     },
     "extra": {

@@ -21,6 +21,10 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  */
 class TwoFactorGateSubscriber implements EventSubscriberInterface
 {
+    public const ALLOW = 'allow';
+    public const REDIRECT = 'redirect';
+    public const DENY = 'deny';
+
     /** Erreichbar ohne bestätigten Code */
     private const ALLOWED_ROUTES = [
         'frontend.nova_2fa.verify',
@@ -31,6 +35,34 @@ class TwoFactorGateSubscriber implements EventSubscriberInterface
         'frontend.cookie.offcanvas',
         'frontend.cookie.permission',
         'frontend.cookie.groups',
+    ];
+
+    /**
+     * Nachlade-Bausteine (GET per XHR), die auch vor der Code-Eingabe laufen dürfen – ohne Kontodaten.
+     * Alles andere (Konto, Bestellungen, Adressen, Merkzettel, Checkout) bleibt bis zum Code gesperrt.
+     */
+    private const XHR_ALLOWED_ROUTES = [
+        'frontend.checkout.info',
+        'frontend.cart.offcanvas',
+        'frontend.menu.offcanvas',
+        'frontend.search.suggest',
+        'frontend.country.country.data',
+        'frontend.detail.switch',
+        'frontend.product.reviews',
+        'frontend.product.purchase-limit',
+        'frontend.captcha.basic-captcha.load',
+        'widgets.quickview.minimal',
+        'widgets.search.pagelet.v2',
+        'widgets.search.filter',
+    ];
+
+    private const XHR_ALLOWED_PREFIXES = ['frontend.cookie.', 'frontend.cms.'];
+
+    /** Store-API: Zugangsdaten und Profil eines Kontos mit 2FA lassen sich dort nicht ohne Code ändern */
+    private const STORE_API_DENIED_ROUTES = [
+        'store-api.account.change-email',
+        'store-api.account.change-password',
+        'store-api.account.change-profile',
     ];
 
     public function __construct(
@@ -49,12 +81,45 @@ class TwoFactorGateSubscriber implements EventSubscriberInterface
         ];
     }
 
+    /**
+     * Was passiert mit einer Storefront-Anfrage eines angemeldeten, aber noch nicht per Code bestätigten Kontos?
+     *
+     * @return self::ALLOW|self::REDIRECT|self::DENY
+     */
+    public static function decide(string $route, string $method, bool $isXhr): string
+    {
+        if (\in_array($route, self::ALLOWED_ROUTES, true)) {
+            return self::ALLOW;
+        }
+
+        $safe = \in_array(strtoupper($method), ['GET', 'HEAD'], true);
+        if ($safe && $isXhr && self::isXhrAllowed($route)) {
+            return self::ALLOW;
+        }
+
+        return $safe && !$isXhr ? self::REDIRECT : self::DENY;
+    }
+
+    public static function isStoreApiDenied(string $route): bool
+    {
+        return \in_array($route, self::STORE_API_DENIED_ROUTES, true);
+    }
+
     public function onController(ControllerEvent $event): void
     {
         $request = $event->getRequest();
         $route = (string) $request->attributes->get('_route');
         $scope = (array) $request->attributes->get(PlatformRequest::ATTRIBUTE_ROUTE_SCOPE, []);
-        if (!$event->isMainRequest() || !\in_array('storefront', $scope, true) || \in_array($route, self::ALLOWED_ROUTES, true)) {
+        if (!$event->isMainRequest()) {
+            return;
+        }
+
+        $storefront = \in_array('storefront', $scope, true);
+        $storeApi = !$storefront && \in_array('store-api', $scope, true) && self::isStoreApiDenied($route);
+        if (!$storefront && !$storeApi) {
+            return;
+        }
+        if ($storefront && self::decide($route, $request->getMethod(), $request->isXmlHttpRequest()) === self::ALLOW) {
             return;
         }
 
@@ -65,18 +130,27 @@ class TwoFactorGateSubscriber implements EventSubscriberInterface
         }
 
         $customerId = $customer->getId();
+        if ($storeApi) {
+            // Die Store-API kennt keine Code-Abfrage – für Konten mit 2FA bleibt nur die Storefront
+            if ($this->guard->isEnabled($customerId)) {
+                $event->setController(static fn (): JsonResponse => new JsonResponse(['errors' => [[
+                    'status' => '403',
+                    'code' => 'NOVA_2FA_STORE_API_DENIED',
+                    'title' => 'Forbidden',
+                    'detail' => 'Dieses Konto ist mit Zwei-Faktor-Anmeldung geschützt. Änderungen bitte im Kundenkonto im Shop vornehmen.',
+                ]]], 403));
+            }
+
+            return;
+        }
+
         if (!$this->guard->isEnabled($customerId) || $this->guard->isVerified($request, $customerId, $context->getSalesChannelId())) {
             return;
         }
 
         $isXhr = $request->isXmlHttpRequest();
-        if ($request->isMethod('GET') && $isXhr) {
-            // Kleine Nachlade-Bausteine (Warenkorb-Zähler usw.) nicht blockieren
-            return;
-        }
-
         $url = $this->router->generate('frontend.nova_2fa.verify', [
-            'redirectTo' => $request->isMethod('GET') ? $request->getRequestUri() : '/account',
+            'redirectTo' => $request->isMethod('GET') && !$isXhr ? $request->getRequestUri() : '/account',
         ]);
 
         $event->setController(static fn () => $isXhr
@@ -98,5 +172,19 @@ class TwoFactorGateSubscriber implements EventSubscriberInterface
         if ($request !== null) {
             $this->guard->forget($request);
         }
+    }
+
+    private static function isXhrAllowed(string $route): bool
+    {
+        if (\in_array($route, self::XHR_ALLOWED_ROUTES, true)) {
+            return true;
+        }
+        foreach (self::XHR_ALLOWED_PREFIXES as $prefix) {
+            if (str_starts_with($route, $prefix)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

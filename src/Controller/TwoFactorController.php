@@ -75,13 +75,14 @@ class TwoFactorController extends StorefrontController
         $pending = $session->get(TwoFactorGuard::SESSION_PENDING);
         $secret = \is_string($pending) ? $this->cipher->decrypt($pending) : null;
 
-        if ($secret === null || Totp::verify($secret, $request->request->getString('code')) === null) {
+        $step = $secret !== null ? Totp::verify($secret, $request->request->getString('code')) : null;
+        if ($secret === null || $step === null) {
             $this->addFlash(self::DANGER, $this->trans('novaTwoFactor.error.invalidCode'));
 
             return $this->redirectToRoute('frontend.nova_2fa.page');
         }
 
-        $codes = $this->store->enable($customer->getId(), $secret);
+        $codes = $this->store->enable($customer->getId(), $secret, $step);
         $session->remove(TwoFactorGuard::SESSION_PENDING);
         $session->set(TwoFactorGuard::SESSION_RECOVERY, $codes);
         $this->guard->markVerified($request, $customer->getId());

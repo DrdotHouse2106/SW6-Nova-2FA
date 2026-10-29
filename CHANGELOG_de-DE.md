@@ -1,3 +1,13 @@
+# 1.4.0
+- Sicherheit: Vor der Code-Eingabe liefert die Storefront auch per Nachlade-Anfrage (XHR) keine Konto-Inhalte mehr (Bestellungen, Adressen, Merkzettel, Checkout). Erlaubt bleiben nur kleine Bausteine wie Warenkorb-Zähler, Off-Canvas-Warenkorb und -Menü, Suchvorschläge und Cookie-Einstellungen. Nach dem Code und für Konten ohne 2FA ändert sich nichts
+- Sicherheit: „2FA zurücksetzen“ für andere Benutzer und für Kunden verlangt jetzt den eigenen App-Code (wie beim Anlegen von Zugängen) und wird protokolliert. Die eigene 2FA lässt sich nur noch im Profil mit gültigem Code abschalten. Schnittstellen-Benutzer dürfen nichts zurücksetzen
+- Sicherheit: Shopwares Anmelde-Limit gilt jetzt auch, wenn das Plugin bei der Admin-Anmeldung selbst antwortet (Code fehlt oder falsch). Passwörter von Konten mit 2FA lassen sich so nicht mehr unbegrenzt durchprobieren
+- Sicherheit: Fehlversuche werden auch bei gleichzeitigen Anfragen sicher gezählt (Sperre nach Fehlversuchen nicht mehr umgehbar)
+- Sicherheit: Benutzer, Rollen, Integrationen und die 2FA-Einstellungen sind jetzt auch über verschachtelte Schreibvorgänge der API (z. B. Sync) und als Einstellungs-Datensatz nur mit Code änderbar
+- Sicherheit: Store-API (z. B. App): Für Konten mit 2FA sind E-Mail-Adresse, Passwort und Profil dort nicht mehr änderbar – nur noch im Kundenkonto im Shop
+- Der Bestätigungscode aus der Einrichtung gilt danach nicht noch einmal
+- Hinweis in der Anleitung: Wird das App-Secret (`APP_SECRET`) geändert, sind alle eingerichteten 2FA-Schlüssel unlesbar
+
 # 1.3.0
 - Neu: **Schnittstellen-Benutzer (ohne Zwei-Faktor-Anmeldung)** – für Programme wie ein ERP (z. B. weclapp), die sich mit Benutzername und Passwort anmelden. Sie brauchen keinen Code, dürfen aber nie Benutzer, Rollen, API-Zugänge oder die 2FA-Einstellungen ändern
 - Änderungen an den Einstellungen der Zwei-Faktor-Anmeldung verlangen jetzt einen frischen Code

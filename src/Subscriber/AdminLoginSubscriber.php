@@ -4,6 +4,9 @@ namespace Nova\TwoFactor\Subscriber;
 
 use Doctrine\DBAL\Connection;
 use Nova\TwoFactor\Service\TwoFactorStore;
+use Shopware\Core\Framework\Api\ApiException;
+use Shopware\Core\Framework\RateLimiter\Exception\RateLimitExceededException;
+use Shopware\Core\Framework\RateLimiter\RateLimiter;
 use Shopware\Core\Framework\Uuid\Uuid;
 use Shopware\Core\System\SystemConfig\SystemConfigService;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -23,17 +26,28 @@ use Symfony\Component\HttpKernel\KernelEvents;
  * Anmeldeseite gibt es daher kein eigenes Code-Feld. Deshalb gilt zusätzlich: Passwort und Code direkt
  * hintereinander ins Passwortfeld („MeinPasswort123456“, Leerzeichen dazwischen erlaubt; Wiederherstellungscode
  * mit Bindestrich und Leerzeichen: „MeinPasswort ABCDE-12345“).
+ *
+ * Antwortet das Plugin selbst (Code fehlt/falsch), läuft Shopwares Anmelde-Limit („oauth“) hier mit,
+ * sonst ließe sich das Passwort eines 2FA-Kontos am abweichenden Fehler unbegrenzt erraten. Mit richtigem
+ * Code wird das Limit zurückgesetzt (wie bei Shopware nach erfolgreicher Anmeldung).
  */
 class AdminLoginSubscriber implements EventSubscriberInterface
 {
     public const ROUTE = 'api.oauth.token';
     public const FIELD = 'nova_otp';
 
+    private ?RateLimiter $rateLimiter = null;
+
     public function __construct(
         private readonly TwoFactorStore $userStore,
         private readonly Connection $connection,
         private readonly SystemConfigService $config,
     ) {
+    }
+
+    public function setRateLimiter(?RateLimiter $rateLimiter): void
+    {
+        $this->rateLimiter = $rateLimiter;
     }
 
     public static function getSubscribedEvents(): array
@@ -91,6 +105,8 @@ class AdminLoginSubscriber implements EventSubscriberInterface
             }
         }
         if ($code === '') {
+            // Ab hier antwortet das Plugin statt Shopware: gleiches Limit wie dort (wirft wie dort 429)
+            $this->ensureAccepted($request, $username);
             $this->deny($event, 'NOVA_2FA_REQUIRED', 'Zwei-Faktor-Anmeldung: Passwort und direkt dahinter den 6-stelligen Code aus der App eingeben.');
 
             return;
@@ -103,11 +119,88 @@ class AdminLoginSubscriber implements EventSubscriberInterface
             $this->config->getInt('NovaTwoFactor.config.lockMinutes') ?: 15,
         );
 
+        if ($result === 'ok' || $result === 'recovery') {
+            // Vollständig angemeldet: Zähler zurück, Shopware prüft und zählt danach wie gewohnt
+            $this->resetLimiter($request, $username);
+
+            return;
+        }
+
+        // Falscher Code bei richtigem Passwort: zählt wie ein Fehlversuch bei Shopware
+        $this->ensureAccepted($request, $username);
+
         if ($result === 'locked') {
             $this->deny($event, 'NOVA_2FA_LOCKED', 'Zu viele Fehlversuche. Bitte später erneut versuchen.');
-        } elseif ($result !== 'ok' && $result !== 'recovery') {
+        } else {
             $this->deny($event, 'NOVA_2FA_INVALID', 'Der Code ist ungültig.');
         }
+    }
+
+    /**
+     * Schlüssel wie in Shopwares AuthController::token()
+     *
+     * @return array{0: string, 1: string, 2: string} [Benutzer-IP, Benutzer, IP]
+     */
+    public static function limiterKeys(string $username, ?string $clientIp): array
+    {
+        $user = strtolower($username);
+        $ip = (string) $clientIp;
+
+        return [$user . '-' . $ip, $user, $ip];
+    }
+
+    private function ensureAccepted(Request $request, string $username): void
+    {
+        if ($this->rateLimiter === null) {
+            return;
+        }
+
+        try {
+            foreach ($this->limits($request, $username) as [$limit, $key, $optional]) {
+                $optional
+                    ? $this->rateLimiter->ensureAcceptedIfConfigured($limit, $key)
+                    : $this->rateLimiter->ensureAccepted($limit, $key);
+            }
+        } catch (RateLimitExceededException $exception) {
+            // Shopware 6.6/6.7: gleiche Antwort wie AuthController::token()
+            throw method_exists(ApiException::class, 'notificationThrottled') // @phpstan-ignore function.alreadyNarrowedType
+                ? ApiException::notificationThrottled($exception->getWaitTime(), $exception)
+                : $exception;
+        }
+    }
+
+    private function resetLimiter(Request $request, string $username): void
+    {
+        if ($this->rateLimiter === null) {
+            return;
+        }
+
+        foreach ($this->limits($request, $username) as [$limit, $key, $optional]) {
+            $optional
+                ? $this->rateLimiter->resetIfConfigured($limit, $key)
+                : $this->rateLimiter->reset($limit, $key);
+        }
+    }
+
+    /**
+     * Shopware 6.7 kennt zusätzlich Limits je Benutzer und je IP (nur wenn konfiguriert)
+     *
+     * @return list<array{0: string, 1: string, 2: bool}>
+     */
+    private function limits(Request $request, string $username): array
+    {
+        [$combined, $user, $ip] = self::limiterKeys($username, $request->getClientIp());
+        $limits = [[RateLimiter::OAUTH, $combined, false]];
+        if (method_exists(RateLimiter::class, 'ensureAcceptedIfConfigured')) { // @phpstan-ignore function.alreadyNarrowedType
+            foreach (['OAUTH_USER' => $user, 'OAUTH_CLIENT' => $ip] as $name => $key) {
+                $constant = RateLimiter::class . '::' . $name;
+                if (\defined($constant)) {
+                    $limits[] = [(string) \constant($constant), $key, true];
+                }
+            }
+        }
+
+        return $limits;
     }
 
     /** In den Einstellungen als Schnittstellen-Benutzer (ohne 2FA) ausgewählt? */
