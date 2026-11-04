@@ -40,10 +40,11 @@ class TwoFactorGateSubscriber implements EventSubscriberInterface
     /**
      * Nachlade-Bausteine (GET per XHR), die auch vor der Code-Eingabe laufen dürfen – ohne Kontodaten.
      * Alles andere (Konto, Bestellungen, Adressen, Merkzettel, Checkout) bleibt bis zum Code gesperrt.
+     * Nicht freigegeben: Off-Canvas-Warenkorb (Positionen des Kontos) und CMS-Bausteine (das Kontaktformular
+     * ist dort mit Name/Telefon des Kontos vorbelegt) – vor dem Code ist ohnehin nur die Code-Seite sichtbar.
      */
     private const XHR_ALLOWED_ROUTES = [
         'frontend.checkout.info',
-        'frontend.cart.offcanvas',
         'frontend.menu.offcanvas',
         'frontend.search.suggest',
         'frontend.country.country.data',
@@ -56,7 +57,7 @@ class TwoFactorGateSubscriber implements EventSubscriberInterface
         'widgets.search.filter',
     ];
 
-    private const XHR_ALLOWED_PREFIXES = ['frontend.cookie.', 'frontend.cms.'];
+    private const XHR_ALLOWED_PREFIXES = ['frontend.cookie.'];
 
     /** Store-API: Zugangsdaten und Profil eines Kontos mit 2FA lassen sich dort nicht ohne Code ändern */
     private const STORE_API_DENIED_ROUTES = [

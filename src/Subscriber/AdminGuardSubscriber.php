@@ -30,8 +30,29 @@ class AdminGuardSubscriber implements EventSubscriberInterface
     /** Entitäten, über die man sich Zugang zur Administration oder API verschafft */
     public const PROTECTED_ENTITIES = ['user', 'acl_role', 'integration', 'user_access_key', 'acl_user_role', 'integration_role'];
 
-    /** Eigene Aktionen, die wie Zugangs-Änderungen behandelt werden */
-    public const PROTECTED_ROUTES = ['api.action.nova_2fa.user.reset', 'api.action.nova_2fa.customer.reset'];
+    /**
+     * Aktionen, die wie Zugangs-Änderungen behandelt werden: eigene Reset-Aktionen und Shopwares eigene
+     * Lösch-Routen für Zugangsschlüssel und Rollen-Zuordnungen (Routenname passt nicht zum Entitätsnamen)
+     */
+    public const PROTECTED_ROUTES = [
+        'api.action.nova_2fa.user.reset',
+        'api.action.nova_2fa.customer.reset',
+        'api.user_access_keys.delete',
+        'api.user_role.delete',
+    ];
+
+    /** Namensraum der Plugin-Einstellungen in system_config (Vergleich ohne Groß-/Kleinschreibung) */
+    public const CONFIG_NAMESPACE = 'novatwofactor';
+
+    /**
+     * Schreibende Routen von Shopwares SystemConfigController (6.7): „api.action.core.save.system-config“
+     * (POST /api/_action/system-config) und „api.action.core.save.system-config.batch“ (…/batch, je Verkaufskanal)
+     */
+    public const SYSTEM_CONFIG_SAVE_PREFIX = 'api.action.core.save.system-config';
+
+    /** Eigenes Profil (PATCH /api/_info/me): diese Felder ändern die Anmeldedaten und brauchen den Code */
+    public const CHANGE_ME_ROUTE = 'api.change.me';
+    public const CHANGE_ME_PROTECTED_FIELDS = ['password', 'email', 'username'];
 
     /** Erlaubt ohne eingerichtete 2FA (Pflicht-Modus): Einrichtung, Anmeldung, Profil */
     private const SETUP_ROUTE_PREFIXES = ['api.action.nova_2fa.me', 'api.oauth.', 'api.info.me', 'api.user.logout', 'api.action.user.logout'];
@@ -62,6 +83,14 @@ class AdminGuardSubscriber implements EventSubscriberInterface
         $userId = $source->getUserId();
 
         if ($this->isProtectedWrite($request, $route)) {
+            // Die 2FA anderer Admins darf nur entfernen, wer selbst 2FA nutzt (Notfall: Konsolenbefehl)
+            if ($route === 'api.action.nova_2fa.user.reset' && $userId !== null
+                && !AdminLoginSubscriber::isApiUser($this->config, $userId) && !$this->userStore->isEnabled($userId)) {
+                $this->deny($event, 'NOVA_2FA_SETUP_REQUIRED', 'Die Zwei-Faktor-Anmeldung anderer Benutzer kann nur zurücksetzen, wer sie selbst eingerichtet hat.');
+
+                return;
+            }
+
             $denial = $this->authorizeAccessWrite($request, $source);
             if ($denial !== null) {
                 $this->deny($event, $denial[0], $denial[1]);
@@ -177,10 +206,23 @@ class AdminGuardSubscriber implements EventSubscriberInterface
             return \in_array($match[1], self::PROTECTED_ENTITIES, true);
         }
 
-        // Einstellungen dieses Plugins (z. B. Liste der Schnittstellen-Benutzer) nur mit Code ändern
-        if (str_starts_with($route, 'api.action.core.save.system-config')
-            && str_contains((string) $request->getContent(), 'NovaTwoFactor.config.')) {
-            return true;
+        // Einstellungen dieses Plugins (z. B. Liste der Schnittstellen-Benutzer) nur mit Code ändern.
+        // Geprüft werden die dekodierten Schlüssel, mit denen Shopware tatsächlich speichert – nicht der Rohtext
+        // (JSON-Escapes wie „\u004E“ oder URL-Kodierung wie „%4E“ würden eine Textsuche umgehen).
+        // Präfix statt fester Liste, damit auch künftige Varianten erfasst sind
+        if (str_starts_with($route, self::SYSTEM_CONFIG_SAVE_PREFIX)) {
+            return self::touchesPluginConfig(self::payload($request));
+        }
+
+        // Eigenes Konto: Passwort, E-Mail-Adresse oder Benutzername nur mit Code ändern
+        if ($route === self::CHANGE_ME_ROUTE) {
+            foreach (array_keys(self::payload($request)) as $field) {
+                if (\in_array(strtolower(trim((string) $field)), self::CHANGE_ME_PROTECTED_FIELDS, true)) {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         if ($route === 'api.action.sync') {
@@ -193,6 +235,66 @@ class AdminGuardSubscriber implements EventSubscriberInterface
         }
 
         return false;
+    }
+
+    /**
+     * Gehört ein system_config-Schlüssel zu diesem Plugin? Auch „NovaTwoFactor“ und „NovaTwoFactor.config“ selbst:
+     * Shopware baut die Einstellungen aus den Punkt-getrennten Schlüsseln zu einem Baum zusammen, ein Wert unter
+     * einem übergeordneten Schlüssel kann die einzelnen Einstellungen also überdecken. Groß-/Kleinschreibung
+     * spielt in der Datenbank keine Rolle, Leerzeichen am Rand entfernt Shopware vor dem Speichern.
+     */
+    public static function isPluginConfigKey(string $key): bool
+    {
+        $key = strtolower(trim($key));
+
+        return $key === self::CONFIG_NAMESPACE || str_starts_with($key, self::CONFIG_NAMESPACE . '.');
+    }
+
+    /**
+     * Enthält der Inhalt (auf beliebiger Ebene – bei /batch liegen die Schlüssel je Verkaufskanal eine Ebene
+     * tiefer) einen Schlüssel dieses Plugins?
+     *
+     * @param array<mixed> $payload
+     */
+    public static function touchesPluginConfig(array $payload, int $depth = 0): bool
+    {
+        if ($depth > 32) {
+            // Unplausibel tief verschachtelt: lieber Code verlangen
+            return true;
+        }
+
+        foreach ($payload as $key => $value) {
+            if (\is_string($key) && self::isPluginConfigKey($key)) {
+                return true;
+            }
+            if (\is_array($value) && self::touchesPluginConfig($value, $depth + 1)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Dekodierter Inhalt der Anfrage, so wie Shopwares Controller ihn lesen ($request->request): JSON hat Shopware
+     * zu diesem Zeitpunkt schon übernommen, Formulardaten hat PHP dekodiert. Zusätzlich der JSON-Rohtext, falls
+     * $request->request (z. B. wegen eines abweichenden Content-Type) leer ist.
+     *
+     * @return array<mixed>
+     */
+    private static function payload(Request $request): array
+    {
+        $payload = $request->request->all();
+
+        $content = (string) $request->getContent();
+        if ($content !== '') {
+            $decoded = json_decode($content, true);
+            if (\is_array($decoded)) {
+                $payload = array_merge($decoded, $payload);
+            }
+        }
+
+        return $payload;
     }
 
     /** Allgemeine Entity-Routen (auch verschachtelt), Sync und Klonen */

@@ -25,11 +25,9 @@ class TwoFactorGateDecisionTest extends TestCase
 
         // Kleine Nachlade-Bausteine ohne Kontodaten
         yield 'Warenkorb-Zähler' => ['frontend.checkout.info', 'GET', true, Gate::ALLOW];
-        yield 'Off-Canvas-Warenkorb' => ['frontend.cart.offcanvas', 'GET', true, Gate::ALLOW];
         yield 'Off-Canvas-Menü' => ['frontend.menu.offcanvas', 'GET', true, Gate::ALLOW];
         yield 'Suchvorschläge' => ['frontend.search.suggest', 'GET', true, Gate::ALLOW];
         yield 'Cookie-Gruppen per XHR' => ['frontend.cookie.consent.offcanvas', 'GET', true, Gate::ALLOW];
-        yield 'CMS-Baustein' => ['frontend.cms.page', 'GET', true, Gate::ALLOW];
         yield 'Länder-Bundesländer' => ['frontend.country.country.data', 'GET', true, Gate::ALLOW];
 
         // Z-1: Kontodaten per XHR-Kopfzeile nicht mehr erreichbar
@@ -39,6 +37,8 @@ class TwoFactorGateDecisionTest extends TestCase
         yield 'Merkzettel per XHR' => ['frontend.wishlist.product.list', 'GET', true, Gate::DENY];
         yield 'Warenkorb-JSON per XHR' => ['frontend.checkout.cart.json', 'GET', true, Gate::DENY];
         yield 'Bestellabschluss per XHR' => ['frontend.checkout.confirm.page', 'GET', true, Gate::DENY];
+        yield 'Off-Canvas-Warenkorb (Positionen des Kontos)' => ['frontend.cart.offcanvas', 'GET', true, Gate::DENY];
+        yield 'CMS-Baustein (Kontaktformular vorbelegt)' => ['frontend.cms.page', 'GET', true, Gate::DENY];
         yield 'Unbekannte Plugin-Route per XHR' => ['frontend.some_plugin.data', 'GET', true, Gate::DENY];
 
         // Seitenaufrufe leiten zur Code-Abfrage, Änderungen werden abgelehnt

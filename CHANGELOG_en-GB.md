@@ -1,3 +1,11 @@
+# 1.5.0
+- Security: the two-factor settings (e.g. interface users, mandatory 2FA for the administration) can no longer be changed through the API (`/api/_action/system-config` and `/api/_action/system-config/batch`) without a code, including encoded keys (JSON escapes, form encoding, different letter case, parent keys). The check now uses the keys Shopware actually stores
+- Security: changing password, e-mail address or username in your own administration profile now requires the app code (same confirmation dialog as for access changes). Name, language and time zone can still be changed without a code
+- Security: deleting a user's access keys or role assignments through Shopware's dedicated delete routes also requires the code
+- Security: only users who have 2FA set up themselves can reset the 2FA of other admins (emergency: `bin/console nova-2fa:reset-user`)
+- Security: before the code is entered, the storefront no longer loads the off-canvas cart and CMS blocks via XHR (the contact form was prefilled with the account's name and phone). The cart counter remains
+- Verified: the key for Shopware's login rate limit matches Shopware 6.7 exactly (lower-case username + IP), so plugin and Shopware count together
+
 # 1.4.0
 - Security: before the code is entered, the storefront no longer returns account content via XHR requests (orders, addresses, wishlist, checkout). Only small widgets such as the cart counter, off-canvas cart and menu, search suggestions and cookie settings remain available. Nothing changes after the code and for accounts without 2FA
 - Security: "Reset 2FA" for other users and for customers now requires your own app code (like creating access) and is logged. Your own 2FA can only be disabled in the profile with a valid code. Interface users cannot reset anything

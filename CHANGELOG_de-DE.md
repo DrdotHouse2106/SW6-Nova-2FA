@@ -1,3 +1,11 @@
+# 1.5.0
+- Sicherheit: Die Einstellungen der Zwei-Faktor-Anmeldung (u. a. Schnittstellen-Benutzer, Pflicht für die Administration) lassen sich über die API (`/api/_action/system-config` und `/api/_action/system-config/batch`) nicht mehr ohne Code ändern, auch nicht mit kodierten Schlüsseln (JSON-Escapes, Formular-Kodierung, andere Groß-/Kleinschreibung, übergeordnete Schlüssel). Geprüft werden jetzt die Schlüssel, die Shopware tatsächlich speichert
+- Sicherheit: Passwort, E-Mail-Adresse und Benutzername im eigenen Profil der Administration ändern verlangt jetzt den App-Code (Bestätigungsfenster wie bei Zugangs-Änderungen). Name, Sprache und Zeitzone bleiben ohne Code änderbar
+- Sicherheit: Zugangsschlüssel und Rollen-Zuordnungen eines Benutzers über Shopwares eigene Lösch-Routen entfernen verlangt ebenfalls den Code
+- Sicherheit: Die 2FA anderer Admins kann nur noch zurücksetzen, wer selbst 2FA eingerichtet hat (Notfall weiterhin per `bin/console nova-2fa:reset-user`)
+- Sicherheit: Vor der Code-Eingabe lädt die Storefront auch den Off-Canvas-Warenkorb und CMS-Bausteine nicht mehr nach (das Kontaktformular war dort mit Name und Telefon des Kontos vorbelegt). Der Warenkorb-Zähler bleibt
+- Geprüft: Der Schlüssel für Shopwares Anmelde-Limit entspricht genau dem von Shopware 6.7 (Benutzername kleingeschrieben + IP), Plugin und Shopware zählen also gemeinsam
+
 # 1.4.0
 - Sicherheit: Vor der Code-Eingabe liefert die Storefront auch per Nachlade-Anfrage (XHR) keine Konto-Inhalte mehr (Bestellungen, Adressen, Merkzettel, Checkout). Erlaubt bleiben nur kleine Bausteine wie Warenkorb-Zähler, Off-Canvas-Warenkorb und -Menü, Suchvorschläge und Cookie-Einstellungen. Nach dem Code und für Konten ohne 2FA ändert sich nichts
 - Sicherheit: „2FA zurücksetzen“ für andere Benutzer und für Kunden verlangt jetzt den eigenen App-Code (wie beim Anlegen von Zugängen) und wird protokolliert. Die eigene 2FA lässt sich nur noch im Profil mit gültigem Code abschalten. Schnittstellen-Benutzer dürfen nichts zurücksetzen

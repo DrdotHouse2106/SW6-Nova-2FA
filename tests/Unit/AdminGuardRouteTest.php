@@ -41,6 +41,9 @@ class AdminGuardRouteTest extends TestCase
     {
         static::assertSame(['admin-1.2.3.4', 'admin', '1.2.3.4'], AdminLoginSubscriber::limiterKeys('Admin', '1.2.3.4'));
         static::assertSame(['admin-', 'admin', ''], AdminLoginSubscriber::limiterKeys('admin', null));
+        // Wie AuthController::token() in 6.7: strtolower (nur ASCII) ohne trim
+        static::assertSame(['max.muster Ü-::1', 'max.muster Ü', '::1'], AdminLoginSubscriber::limiterKeys('Max.Muster Ü', '::1'));
+        static::assertSame([' admin-1.2.3.4', ' admin', '1.2.3.4'], AdminLoginSubscriber::limiterKeys(' ADMIN', '1.2.3.4'));
     }
 
     public function testSplitPasswordAndCode(): void

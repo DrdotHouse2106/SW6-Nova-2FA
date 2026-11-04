@@ -18,8 +18,6 @@ use Symfony\Component\HttpFoundation\RequestStack;
  */
 class AccessWriteGuardSubscriber implements EventSubscriberInterface
 {
-    private const CONFIG_PREFIX = 'NovaTwoFactor.config.';
-
     public function __construct(
         private readonly AdminGuardSubscriber $guard,
         private readonly RequestStack $requestStack,
@@ -65,7 +63,7 @@ class AccessWriteGuardSubscriber implements EventSubscriberInterface
             if (\in_array($entity, AdminGuardSubscriber::PROTECTED_ENTITIES, true)) {
                 return true;
             }
-            if ($entity === 'system_config' && str_starts_with($this->configKey($command), self::CONFIG_PREFIX)) {
+            if ($entity === 'system_config' && AdminGuardSubscriber::isPluginConfigKey($this->configKey($command))) {
                 return true;
             }
         }

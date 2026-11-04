@@ -137,7 +137,10 @@ class AdminLoginSubscriber implements EventSubscriberInterface
     }
 
     /**
-     * Schlüssel wie in Shopwares AuthController::token()
+     * Schlüssel 1:1 wie in Shopwares AuthController::token() (6.7): Benutzername aus
+     * $request->request->getString('username') nur kleingeschrieben (nicht getrimmt), IP aus getClientIp(),
+     * kombiniert „<benutzer>-<ip>“. Weicht der Schlüssel ab, zählen Plugin und Shopware getrennt und das
+     * Passwort-Orakel wäre wieder offen – daher keine eigene Normalisierung (kein trim, kein mb_strtolower).
      *
      * @return array{0: string, 1: string, 2: string} [Benutzer-IP, Benutzer, IP]
      */
